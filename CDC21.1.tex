@@ -311,26 +311,54 @@ Therefore, the discrete EL equation can also be written as
 The type II discrete Hamiltonian is chosen as
 \begin{align*}
     H_d (R_k, P_{k+1}) 
-    & = P_{k+1} \cdot R_k   - \frac{h}{2} p_k \cdot J^{-1} p_k\\
-    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   - \frac{h}{2} \tr{ J^{-1} p_kp_k^T}.
+    & = P_{k+1} \cdot R_k   + \frac{h}{2} \mu_k \cdot J^{-1} \mu_k\\
+    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ J^{-1} \mu_k\mu_k^T}.
 \end{align*}
 Since $xx^T = \hat x^2 -\frac{1}{2}\tr{\hat x^2}I_{3\times 3}$, it can be rearranged into
 \begin{align*}
     H_d (R_k, P_{k+1}) 
-    %& = \tr{R_k^T P_{k+1}}   - \frac{h}{2} \tr{ J^{-1} (\hat p_k^2 -\frac{1}{2} \tr{\hat p_k^2}  I) } \\
-    %& = \tr{R_k^T P_{k+1}}   - \frac{h}{2} \tr{ J^{-1} \hat p_k^2} +  \frac{h}{4} \tr{\hat p_k^2}  \tr{J^{-1}}  \\
-     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   - \frac{h}{2} \tr{ K \hat p_k^2},
+     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K \hat \mu_k^T \hat \mu_k} 
 \end{align*}
-where $K = J^{-1} - \frac{1}{2}\tr{J^{-1}} I_{3\times 3} \in\Re^{3\times 3} $.
-We approximate $\hat p_k$ by 
+where $K = \frac{1}{2}\tr{J^{-1}} I_{3\times 3}-J^{-1} \in\Re^{3\times 3} $.
+We approximate $\hat \mu_k$ by 
 \begin{align*}
-    \hat p_k = R_k^T P_{k+1},
-\end{align*}
-or
-\begin{align*}
-    \hat p_k = - P_{k+1}^T R_k,
+    \hat \mu_k \approx R_k^T P_{k+1},
 \end{align*}
 so that
+\begin{align*}
+    H_d (R_k, P_{k+1}) 
+    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K P_{k+1}^T P_{k+1} }.
+\end{align*}
+The derivative of the discrete Hamiltonian is
+\begin{align*}
+    & \D_{R_k} H_d \cdot \delta R_k 
+    =\frac{1}{2} \tr{-\hat\eta_k Q_k} \\
+    & = \frac{1}{2} ( Q_k^T- Q_k )^\vee\cdot \eta_k,
+\end{align*}
+where $Q_k = R_k^T P_{k+1} = F_k \hat\mu_{k+1}$.
+Thus,
+\begin{align}
+    \mu_k 
+          & = \frac{1}{2} (F_k\hat\mu_{k+1}-\hat\mu_{k+1}F_k^T )^\vee\nonumber \\
+          & = \frac{1}{2}(\tr{F_k}I_{3\times 3}-F_k^T)  \mu_{k+1}.
+\end{align}
+Also,
+\begin{align*}
+    \D_{P_{k+1}} H_d & = \frac{1}{2}\tr{ R_k^T \delta P_{k+1}} + h\tr{K \delta P_{k+1}^T P_{k+1} } \\
+                     & = ( R_k + 2h P_{k+1}K ) \cdot \delta P_{k+1}
+\end{align*}
+Thus, 
+\begin{gather*}
+0 = (- R_{k+1} +  R_k + 2h P_{k+1}K ) \cdot \delta P_{k+1},\\
+0 = (- I +  F_k^T + 2h \hat\mu_{k+1} K ) \cdot \delta \hat p_{k+1}.
+\end{gather*}
+This implies
+\begin{gather}
+    2h \hat\mu_{k+1} K + 2h K \hat\mu_{k+1} = F_k - F_k^T\nonumber\\
+2h (\tr{K}I_{3\times 3} - K )\mu_{k+1} = (F_k- F_k^T)^\vee.
+\end{gather}
+
+
 \begin{align*}
     H_d (R_k, P_{k+1}) 
     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K R_k^T P_{k+1} P_{k+1}^T R_k }.
@@ -338,16 +366,16 @@ so that
 
 The variation of the discrete Hamiltonian is
 \begin{align*}
-    & \D_{R_k} H_d \cdot \delta R_k =\frac{1}{2} \tr{-\hat\eta_k Q_k} -h \tr{\hat\eta_k Q_kQ_k^T K } \\
+    & \D_{R_k} H_d \cdot \delta R_k =\frac{1}{2} \tr{-\hat\eta_k Q_k} - h \tr{\hat\eta_k Q_kQ_k^T K } \\
     & = ( (Q_k^T- Q_k)/2 +h Q_kQ_k^TK  - hK Q_k Q_k^T)^\vee\cdot \eta_k
 \end{align*}
 where $Q_k = R_k^T P_{k+1} = F_k \hat\mu_{k+1}$.
 Thus,
-\begin{align*}
+\begin{align}
     \mu_k 
-          & = ((F_k\hat\mu_{k+1}-\hat\mu_{k+1}F_k^T)/2 - h \widehat{F_k\mu_{k+1}}^2 K +  h K \widehat{F_k\mu_{k+1}}^2)^\vee\\
+          & = ((F_k\hat\mu_{k+1}-\hat\mu_{k+1}F_k^T)/2 - h \widehat{F_k\mu_{k+1}}^2 K +  h K \widehat{F_k\mu_{k+1}}^2)^\vee\nonumber \\
           & = \{ \frac{1}{2}(\tr{F_k}I_{3\times 3}-F_k^T) -h (KF_k\mu_{k+1})^\wedge F_{k+1}  \}  \mu_{k+1}.
-\end{align*}
+\end{align}
 Also,
 \begin{align*}
     \D_{P_{k+1}} H_d & = \frac{1}{2}\tr{ R_k^T \delta P_{k+1}} + h\tr{KR_k^T \delta P_{k+1} P_{k+1}^T R_k} \\
@@ -359,11 +387,10 @@ Thus,
 0 = (- I +  F_k^T + 2h F_k^T K F_k \hat\mu_{k+1}) \cdot \delta \hat p_{k+1}.
 \end{gather*}
 This implies
-\begin{gather*}
-2h F_k^T K F_k \hat\mu_{k+1} + 2h \hat\mu_{k+1} F_k^T K F_k = F_k - F_k^T\\
-2h (\tr{K}I_{3\times 3} - F_k^T K F_k)\mu_{k+1} = (F_k - F_k^T)^\vee.
-\end{gather*}
-
+\begin{gather}
+2h F_k^T K F_k \hat\mu_{k+1} + 2h \hat\mu_{k+1} F_k^T K F_k = F_k - F_k^T\nonumber\\
+2h (\tr{K}I_{3\times 3} - F_k^T K F_k)\mu_{k+1} = (F_k- F_k^T)^\vee.
+\end{gather}
 
 
 \bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}

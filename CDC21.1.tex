@@ -308,41 +308,60 @@ Therefore, the discrete EL equation can also be written as
 \end{align*}
 
 \subsection{Discrete Hamiltonian Mechanics on $\SO$}
-The type II discrete Hamiltonian is chosen as
+
+From Lall and West, the type II discrete Hamiltonian is chosen as
 \begin{align*}
     H_d (R_k, P_{k+1}) 
-    & = P_{k+1} \cdot R_k   + \frac{h}{2} \mu_k \cdot J^{-1} \mu_k\\
-    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ J^{-1} \mu_k\mu_k^T}.
+    & = P_{k+1} \cdot R_k   + \frac{h}{2} \mu_{k+1} \cdot J^{-1} \mu_{k+1}\\
+    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ J^{-1} \mu_{k+1}\mu_{k+1}^T}.
 \end{align*}
 Since $xx^T = \hat x^2 -\frac{1}{2}\tr{\hat x^2}I_{3\times 3}$, it can be rearranged into
 \begin{align*}
     H_d (R_k, P_{k+1}) 
-     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K \hat \mu_k^T \hat \mu_k} 
+     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K \hat \mu_{k+1}^T \hat \mu_{k+1}} 
 \end{align*}
 where $K = \frac{1}{2}\tr{J^{-1}} I_{3\times 3}-J^{-1} \in\Re^{3\times 3} $.
-We approximate $\hat \mu_k$ by 
-\begin{align*}
-    \hat \mu_k \approx R_k^T P_{k+1},
-\end{align*}
-so that
-\begin{align*}
+This further implies
+\begin{align}
     H_d (R_k, P_{k+1}) 
-    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K P_{k+1}^T P_{k+1} }.
-\end{align*}
+     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K P_{k+1}^T P_{k+1}}.
+\end{align}
+
 The derivative of the discrete Hamiltonian is
+\begin{align*}
+    \D_{R_k} H_d \cdot \delta R_k = P_{k+1} \cdot \delta R_k = P_k \cdot \delta R_k.
+\end{align*}
+This implies the \textit{projection} of $P_{k+1}$ to $\T_{R_k} \SO$ is equal to $P_k$, or $P_{k+1} F_k^T = P_k$. 
+Thus
+\begin{align*}
+    R_{k+1} \hat \mu_{k+1} F_k^T = R_k \hat \mu_k,
+\end{align*}
+or
+\begin{align*}
+    R_k F_k  \hat\mu_{k+1} F_k^T = R_k \hat \mu_k,
+\end{align*}
+or
+\begin{align}
+    F_k \mu_{k+1} = \mu_k,
+\end{align}
+which is consistent with LGVI, and it implies the conservation of the angular momentum.
+However, if we don't use the \textit{projection},
 \begin{align*}
     & \D_{R_k} H_d \cdot \delta R_k 
     =\frac{1}{2} \tr{-\hat\eta_k Q_k} \\
-    & = \frac{1}{2} ( Q_k^T- Q_k )^\vee\cdot \eta_k,
+    & = \frac{1}{2} ( Q_k- Q_k^T )^\vee\cdot \eta_k,
 \end{align*}
 where $Q_k = R_k^T P_{k+1} = F_k \hat\mu_{k+1}$.
 Thus,
-\begin{align}
+\begin{align*}
     \mu_k 
-          & = \frac{1}{2} (F_k\hat\mu_{k+1}-\hat\mu_{k+1}F_k^T )^\vee\nonumber \\
+          & = \frac{1}{2} (F_k\hat\mu_{k+1}+\hat\mu_{k+1}F_k^T )^\vee\nonumber \\
           & = \frac{1}{2}(\tr{F_k}I_{3\times 3}-F_k^T)  \mu_{k+1}.
-\end{align}
-Also,
+\end{align*}
+Unfortunately, this implies that the angular momentum is not preserved. 
+Let's stick to the idea of projection for now. 
+
+Next, the derivative with respect to $P_{k+1}$ is 
 \begin{align*}
     \D_{P_{k+1}} H_d & = \frac{1}{2}\tr{ R_k^T \delta P_{k+1}} + h\tr{K \delta P_{k+1}^T P_{k+1} } \\
                      & = ( R_k + 2h P_{k+1}K ) \cdot \delta P_{k+1}

@@ -5,7 +5,7 @@
 %\usepackage[all,import]{xy}
 \usepackage{color}
 \usepackage{siunitx}
-\usepackage[hidelinks]{hyperref}
+%\usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
 
 \newcommand{\norm}[1]{\ensuremath{\left\| #1 \right\|}}
@@ -93,7 +93,7 @@ Considering the flow map from the initial state $(g(t_0),\mu(t_0))$ to the termi
 
 First, consider the following functional dependent of a curve $(g(\cdot),\mu(\cdot))$ on $\G\times \g^*$ over $[t_0,t_f]$,
 \begin{align}
-    \mathfrak{G}_\RI = \int_{t_0}^{t_f} \mu \cdot \xi - H(g,\mu) \, dt,
+    \mathfrak{G}_\RI = \int_{t_0}^{t_f} \mu \cdot \xi - H(g,\mu) \, dt,\label{eqn:G10}
 \end{align}
 where $\xi\in\g$ is defined such that
 \begin{align}
@@ -410,6 +410,143 @@ This implies
 2h F_k^T K F_k \hat\mu_{k+1} + 2h \hat\mu_{k+1} F_k^T K F_k = F_k - F_k^T\nonumber\\
 2h (\tr{K}I_{3\times 3} - F_k^T K F_k)\mu_{k+1} = (F_k- F_k^T)^\vee.
 \end{gather}
+
+
+\subsection{Symplectic Form on $\SO$}
+
+We have $\hat\mu = R^T  P$.
+\begin{align*}
+\delta \hat \mu = -\hat\eta R^T P + R^T \delta P.
+\end{align*}
+Solve this for $\delta P$,
+\begin{align*}
+R \delta \hat \mu + R\hat\eta R^T P + \delta P,\\
+R \delta \hat \mu + R\hat\eta \hat\mu+ \delta P.
+\end{align*}
+Substituting these into the canonical form on $\T^*\SO$
+\begin{align*}
+    & \omega( R, P) ((\delta R_1, \delta P_1),(\delta R_2, \delta P_2)) \\
+    & = \pair{\delta P_2, \delta R_1}-\pair{\delta P_1, \delta R_2} \\
+    & = \pair{\delta\hat\mu_2 +\hat\eta_2\hat\mu, \hat\eta_1} 
+    -\pair{\delta\hat \mu_1 + \hat\eta_1\hat\mu, \hat \eta_2}\\
+    & = \delta \mu_2 \cdot \eta_1 - \delta \mu_1 \cdot \eta_2 + \mu \cdot (\eta_1\times \eta_2)\\
+    & = \omega_L(R,\mu) ((\eta_1, \delta \mu_1), (\eta_2,\delta\mu_2)).
+\end{align*}
+In a matrix form, 
+\begin{align*}
+    & \omega_L(R,\mu) ((\eta_1, \delta \mu_1), (\eta_2,\delta\mu_2))\\
+    & =    \begin{bmatrix} \eta_1 \\ \mu_1 \end{bmatrix}^T
+    \begin{bmatrix} -\hat\mu & I_{3\times 3}\\
+        -I_{3\times 3} & 0_{3\times 3} 
+    \end{bmatrix}
+    \begin{bmatrix} \eta_2 \\ \mu_2 \end{bmatrix} \\
+    & =    \begin{bmatrix} \eta_1 \\ \mu_1 \end{bmatrix}^T
+    \mathbb{J}_L(\mu)
+    \begin{bmatrix} \eta_2 \\ \mu_2 \end{bmatrix}.
+\end{align*}
+One can show
+\begin{align*}
+    \mathbb{J}_L(\mu) & = -\mathbb{J}_L^T(\mu) \\
+    \mathbb{J}^{-1}_L(\mu) & = 
+    \begin{bmatrix} 0_{3\times 3} & -I_{3\times 3}\\
+        I_{3\times 3} & \hat\mu
+    \end{bmatrix},\\
+        \mathbb{J}^{-T}_L(\mu) \mathbb{J}(\mu) & =
+    \begin{bmatrix} -I_{3\times 3} & 0_{3\times 3}\\
+        -2 \hat\mu & -I_{3\times 3} 
+    \end{bmatrix}.
+\end{align*}
+The Hamiltonian vector field is defined by
+\begin{align*}
+    \omega( X_H(z), \delta z) = dH(z) \cdot \delta z
+\end{align*}
+or
+\begin{align*}
+    X_H = \mathbb{J}^{-T} dH.
+\end{align*}
+In the reduced form, we have
+\begin{align*}
+    \begin{bmatrix} (R^T \dot R)^\vee \\ \dot \mu \end{bmatrix}
+    =
+    \begin{bmatrix} 0_{3\times 3} & I_{3\times 3}\\
+        -I_{3\times 3} & -\hat\mu
+    \end{bmatrix}
+    \begin{bmatrix}
+        \T^* \L_R (D_RH)\\
+        H_\mu
+    \end{bmatrix},
+\end{align*}
+which yields
+\begin{align*}
+    \dot R & = R \hat H_\mu,\\
+    \dot \mu & = -\hat\mu H_\mu - \T^* \L_R (D_RH).
+\end{align*}
+
+\section{Hamiltonian Variational Integrator}
+
+Let's try to approximate \eqref{eqn:G10} directly, without any canonical transform, as in~\cite{ma2010lie,de2018lie}. 
+We have
+\begin{align*}
+    \frac{1}{h} R_k^T(R_{k+1}-R_k) = \frac{1}{h} (F_k - I_{3\times 3}) \approx \hat\Omega_k.
+\end{align*}
+Or, $\hat\Omega_k$ is approximated by the skew-symmetric part of it to obtain
+\begin{align*}
+    h\hat\Omega_k =\frac{1}{2}( F_k-F_k^T).
+\end{align*}
+
+We have
+\begin{align*}
+    &\mathfrak{G}_k(R_k,\Pi_k,F_k) = \frac{1}{2}\Pi_k \cdot (F_k-F_k^T)^\vee\\
+    &- \frac{h}{2} \Pi_k\cdot J^{-1}\Pi_k -\frac{h}{2}U(R_k) -\frac{h}{2} U(R_kF_k).
+\end{align*}
+Also,
+\begin{align*}
+    \delta F_k = -\hat\eta_k F_k + F_k\hat\eta_{k+1}.
+\end{align*}
+Now,
+\begin{align*}
+    \delta \mathfrak{G}_k & = \frac{1}{2}(F_k-F_k^T)^\vee \cdot \delta \Pi_k -h J^{-1}\Pi_k \cdot \delta\Pi_k \\
+                          &\quad + \frac{1}{2} \Pi_k \cdot (\delta F_k -\delta F_k^T)^\vee\\
+   &\quad -\frac{h}{2} M_k\cdot \eta_k - \frac{h}{2} M_{k+1} \cdot \eta_{k+1},
+\end{align*}
+where
+\begin{align*}
+    \delta F_k -\delta F_k^T & = -\hat\eta_k F_k -F_k^T \hat\eta_k + F_k\hat\eta_{k+1} + \hat\eta_{k+1} F_k^T \\
+    & = -((\tr{F_k}I_{3\times 3}-F_k) \eta_k )^\wedge \\
+    & \quad  + ((\tr{F_k}I_{3\times 3}-F_k^T) \eta_{k+1} )^\wedge.
+\end{align*}
+Substituting this
+\begin{align*}
+    \delta \mathfrak{G}_k & = (\frac{1}{2}(F_k-F_k^T)^\vee  -h J^{-1}\Pi_k) \cdot \delta\Pi_k \\
+                          &\quad +\frac{1}{2} ( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k -hM_k ) \cdot \eta_k\\
+                          &\quad +\frac{1}{2} ( +(\tr{F_k}I_{3\times 3} -F_k)\Pi_k -hM_{k+1} ) \cdot \eta_{k+1}.
+\end{align*}
+
+
+Thus,
+\begin{align*}
+    \delta\mathfrak{G} & = \sum_{k=0}^{N-1} \delta\mathfrak{G}_k \\
+                       & = \sum_{k=1}^{N-1} (\frac{1}{2}(F_k-F_k^T)^\vee  -h J^{-1}\Pi_k) \cdot \delta\Pi_k \\
+                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k - h M_k ) \cdot \eta_k\\
+                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( (\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} - h M_{k} ) \cdot \eta_{k}.
+\end{align*}
+Thus,
+\begin{gather}
+    \frac{1}{2}(F_k -F_k^T)^\vee = hJ^{-1}\Pi_k,\\
+(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k +2 h M_k = 
+(\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} .
+\end{gather}
+Both equations should be solved together for $F_k,\Pi_k$.
+
+The first implies
+\begin{align*}
+    f_k = h J^{-1}\Pi_k,
+\end{align*}
+or
+\begin{align*}
+    F_k = \exp (h \widehat{J^{-1}\Pi_k}).
+\end{align*}
+The second should be solved for $\Pi_k$.
 
 
 \bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}

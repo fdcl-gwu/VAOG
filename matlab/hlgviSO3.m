@@ -1,13 +1,14 @@
 clear all;
 close all;
 
-load lgviSO3 t h J R W N E
+load lgviSO3 t h J R W N E m g rho e3
 
 Q=R;
 
 R(:,:,1) = Q(:,:,1);
 Pi(:,1) = J*W(:,1);
 eps = 1e-10;
+M(:,1)=m*g*cross(rho,R(:,:,1)'*e3);
 
 % Pi2F = @(Pi) expm(h*hat(J\Pi));
 % errPi = @(Pi,Y) (trace(Pi2F(Pi))*eye(3)-Pi2F(Pi)')*Pi - Y;
@@ -21,7 +22,10 @@ for k=1:N-1
 %     end
     
     F(:,:,k) = expm(h*hat(J\Pi(:,k)));
-    Yk = (trace(F(:,:,k))*eye(3) - F(:,:,k))*Pi(:,k);
+    R(:,:,k+1) = R(:,:,k)*F(:,:,k);    
+    M(:,k+1)=m*g*cross(rho,R(:,:,k+1)'*e3);
+    
+    Yk = (trace(F(:,:,k))*eye(3) - F(:,:,k))*Pi(:,k)+2*h*M(:,k+1);
     
 %     Pikp = fsolve(@(Pi) errPi(Pi,Yk), Pi(:,k), options);
 %   fixed point iteration is faster than fsolve
@@ -29,19 +33,17 @@ for k=1:N-1
     Pikp = Pi(:,:,k);
     while delPi > eps
         Fkp = expm(h*hat(J\Pikp));
-        Pikp_new = (trace(Fkp)*eye(3)-Fkp')\Yk;
+        Pikp_new = (trace(Fkp)*eye(3)-Fkp')\(Yk);
         delPi = norm(Pikp_new - Pikp);
         Pikp = Pikp_new;
     end
     Pi(:,:,k+1)=Pikp;
-    R(:,:,k+1) = R(:,:,k)*F(:,:,k);
-
 end
 toc;
 
 for k=1:N
     Wh(:,k) = inv(J)*Pi(:,k);
-    H(k) = 1/2*Wh(:,k)'*J*Wh(:,k);
+    H(k) = 1/2*Wh(:,k)'*J*Wh(:,k)-m*g*rho'*R(:,:,k)'*e3;
     errR(k) = norm(R(:,:,k)-Q(:,:,k));
 end
 

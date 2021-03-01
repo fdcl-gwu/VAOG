@@ -5,7 +5,7 @@ close all;
 
 %Pendulum Properties 
 m=1;
-g=0;
+g=9.81;
 e3=[0 0 1].';
 
 J=diag([1 2.8 2]);
@@ -14,12 +14,13 @@ rho=e3;
 
 %Simulation time
 T=20;
-h=0.01;
+h=0.05;
 N=T/h+1;
 t=linspace(0,T,N);
 
 %Initial conditions
 R(:,:,1)=diag([-1,1,-1]);%rotation matrix
+R(:,:,1)=eye(3);%rotation matrix
 %R(:,:,1)=[0 0 1;
     %0 1 0;
     %-1 0 0];

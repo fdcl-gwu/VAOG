@@ -1,7 +1,7 @@
 \documentclass[letterpaper, 10pt, conference]{ieeeconf}
 \IEEEoverridecommandlockouts \overrideIEEEmargins
 \usepackage{amsmath,amssymb,url}
-\usepackage{graphicx,subfigure}
+\usepackage{graphicx}%,subfigure}
 %\usepackage[all,import]{xy}
 \usepackage{color}
 \usepackage{siunitx}
@@ -35,6 +35,7 @@
 \newcommand{\Ad}{\ensuremath{\mathrm{Ad}}}
 \newcommand{\ad}{\ensuremath{\mathrm{ad}}}
 \newcommand{\g}{\ensuremath{\mathfrak{g}}}
+\DeclareMathOperator*{\argmin}{arg\,min}
 
 \title{\LARGE \bf Variational Accelerated Optimization on a Lie Group}
 
@@ -507,7 +508,7 @@ Now,
 \begin{align*}
     \delta \mathfrak{G}_k & = \frac{1}{2}(F_k-F_k^T)^\vee \cdot \delta \Pi_k -h J^{-1}\Pi_k \cdot \delta\Pi_k \\
                           &\quad + \frac{1}{2} \Pi_k \cdot (\delta F_k -\delta F_k^T)^\vee\\
-   &\quad -\frac{h}{2} M_k\cdot \eta_k - \frac{h}{2} M_{k+1} \cdot \eta_{k+1},
+   &\quad +\frac{h}{2} M_k\cdot \eta_k + \frac{h}{2} M_{k+1} \cdot \eta_{k+1},
 \end{align*}
 where
 \begin{align*}
@@ -518,8 +519,8 @@ where
 Substituting this
 \begin{align*}
     \delta \mathfrak{G}_k & = (\frac{1}{2}(F_k-F_k^T)^\vee  -h J^{-1}\Pi_k) \cdot \delta\Pi_k \\
-                          &\quad +\frac{1}{2} ( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k -hM_k ) \cdot \eta_k\\
-                          &\quad +\frac{1}{2} ( +(\tr{F_k}I_{3\times 3} -F_k)\Pi_k -hM_{k+1} ) \cdot \eta_{k+1}.
+                          &\quad +\frac{1}{2} ( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k + hM_k ) \cdot \eta_k\\
+                          &\quad +\frac{1}{2} ( +(\tr{F_k}I_{3\times 3} -F_k)\Pi_k + hM_{k+1} ) \cdot \eta_{k+1}.
 \end{align*}
 
 
@@ -527,18 +528,17 @@ Thus,
 \begin{align*}
     \delta\mathfrak{G} & = \sum_{k=0}^{N-1} \delta\mathfrak{G}_k \\
                        & = \sum_{k=1}^{N-1} (\frac{1}{2}(F_k-F_k^T)^\vee  -h J^{-1}\Pi_k) \cdot \delta\Pi_k \\
-                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k - h M_k ) \cdot \eta_k\\
-                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( (\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} - h M_{k} ) \cdot \eta_{k}.
+                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k + h M_k ) \cdot \eta_k\\
+                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( (\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} + h M_{k} ) \cdot \eta_{k}.
 \end{align*}
 Thus,
 \begin{gather}
     \frac{1}{2}(F_k -F_k^T)^\vee = hJ^{-1}\Pi_k,\\
-(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k +2 h M_k = 
+(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k - 2 h M_k = 
 (\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} .
 \end{gather}
 Both equations should be solved together for $F_k,\Pi_k$.
-
-The first implies
+But, the first implies
 \begin{align*}
     f_k = h J^{-1}\Pi_k,
 \end{align*}
@@ -548,6 +548,164 @@ or
 \end{align*}
 The second should be solved for $\Pi_k$.
 
+
+Alternatively, assume that
+\begin{align*}
+    J^{-1} (F_k J_d - J_d F_k^T)^\vee \approx h\Omega_k.
+\end{align*}
+We have
+\begin{align*}
+    \mathfrak{G}_k & =  \Pi_k \cdot J^{-1} (F_k J_d - J_d F_k^T)^\vee  \\
+    &\quad - \frac{h}{2} \Pi_k \cdot J^{-1}\Pi_k - \frac{h}{2} U(R_k) - \frac{h}{2} U(R_k F_k).
+\end{align*}
+Also,
+\begin{align*}
+    & \delta F_k J_d - J_d\delta F_k^T =-\hat\eta_k F_k J_d -J_d F_k^T\hat\eta_k\\
+    & + F_k\hat\eta_{k+1} J_d + J_d \hat\eta_{k+1} F_k^T\\
+    & = - (\tr{F_kJ_d}I_{3\times 3} -F_k J_d)\eta_k\\
+    & + (\tr{F_kJ_d}I_{3\times 3} - F_kJ_d)\eta_{k+1}.
+\end{align*}
+Now,
+\begin{align*}
+    \delta \mathfrak{G} & = ( (F_k J_d - J_d F_k^T)^\vee  - h\Pi_k) \cdot J^{-1}\delta\Pi_k\\
+                        & \quad J^{-1}\Pi_k \cdot (
+\end{align*}
+The resulting integrators are
+\begin{gather*}
+(F_k J_d - J_d F_k^T)^\vee  = h\Pi_k \\
+(\tr{F_kJ_d}I_{3\times 3} -F_k J_d)^T J^{-1}\Pi_k - hM_k\\ =
+(\tr{F_{k-1}J_d}I_{3\times 3} -F_{k-1} J_d)^T J^{-1}\Pi_{k-1} .
+\end{gather*}
+The first one is identical to the LGVI, but not the second one. 
+For given $\Pi_k$, the first one is solved for $F_k$. 
+Then, the second should be solved for $F_{k+1}$.
+Numerically, it is slower and it has larger energy error. 
+So, we wouldn't study it further. 
+
+\section{Bregman Dynamics for Optimization}
+
+Consider
+\begin{align*}
+    H_p(t,g,\mu) = \frac{p}{2t^{p+1}} \pair{\mu,\mu} + cp t^{2p-1} f(g).
+\end{align*}
+This is transformed into autonomous system by extending the configuration space into $\G\times \Re$.
+\begin{align*}
+    \bar H (g,t,\mu,E) = H(g,\mu,t) -E,
+\end{align*}
+where
+\begin{align*}
+    E = E(\tau) = H(t(\tau), g(\tau),\mu(\tau)).
+\end{align*}
+Now we have $((g,t),(\mu,-E)) = (\G\times \Re)\times(g^*, \Re)$.
+
+The variational principle is
+\begin{align*}
+    \mathfrak{G} = \int_{\tau_0}^{\tau_f}  \big[ \mu(\tau) \cdot \bar\xi(\tau) - H(t(\tau), g(\tau), \mu(\tau)) \frac{dt}{d\tau}\big]  d\tau,
+\end{align*}
+where
+\begin{align*}
+    \bar \xi = g^{-1} g'
+\end{align*}
+Now
+\begin{align*}
+    \mathfrak{G} = \int_{\tau_0}^{\tau_f}  \big[ \mu(\tau) \cdot \bar\xi(\tau) - \bar H( g,t,\mu,-E) \big]  d\tau,
+\end{align*}
+with
+\begin{align*}
+    \bar H = (H(t(\tau), g(\tau), \mu(\tau))- E) \frac{dt}{d\tau}
+\end{align*}
+
+\section{Bregman Lagrangian System on $\SO$}
+
+On a second thought, do we really need Hamiltonian system, given that we have VI for the time-varying Lagrangian system. 
+
+Consider
+\begin{align*}
+    L(t,R,\Omega) = \frac{p}{2t^{p+1}} \Omega\cdot J\Omega - cpt^{2p-1} f(R).
+\end{align*}
+The discrete Lagrangian is chosen as
+\begin{align*}
+    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{p}{h_k t_k^{p+1}} \tr{(I-F_k)J_d}\\
+    &- \frac{h_k}{2}c p t_k^{2p-1} f(R_k) - \frac{h_k}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),
+\end{align*}
+where $h_k = t_{k+1}-t_k$.
+
+Let 
+\begin{align*}
+    M = -\T^*_I \L_R f(R).
+\end{align*}
+We have
+\begin{align*}
+    D_{R_k} L_{d_k} &= \frac{h_k}{2} cp (t_k^{2p-1} M_k + t_{k+1}^{2p-1} F_k M_{k+1})\\
+    D_{F_k} L_{d_k} &= \frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1} \\
+    \Ad^*_{F_k^T} & \T^*_e \L_{F_{k+1}} D_{F_k} L_{d_k}\\
+                    & = \frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} F_k M_{k+1} \\
+\end{align*}
+Thus,
+\begin{align*}
+\frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+-\frac{p}{h_{k+1} t_{k+1}^{p+1}} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee - \frac{h_{k+1}}{2} cpt^{2p-1}_{k+2} F_{k+1} M_{k+2}\\
++ \frac{h_{k+1}}{2} cp (t_{k+1}^{2p-1} M_{k+1} + t_{k+2}^{2p-1} F_{k+1} M_{k+2})
+\end{align*}
+This yields DEL
+\begin{gather}
+\frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee 
+-\frac{p}{h_{k+1} t_{k+1}^{p+1}} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee\nonumber \\
++ \frac{h_k+h_{k+1}}{2} cp t_{k+1}^{2p-1} M_{k+1}  =0.
+\end{gather}
+Also, for $t_k$
+\begin{align*}
+    D_{h_k} L_{d_k} = -\frac{p}{h_k^2 t_k^{p+1}} \tr{(I-F_k)J_d}\\
+    - \frac{1}{2}c p t_k^{2p-1} f(R_k) - \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+\end{align*}
+Thus,
+\begin{align*}
+    & D_{t_k} L_{d_k} = -\frac{p(p+1)}{h_k t_k^{p+1}} \tr{(I-F_k)J_d} \\
+    &- \frac{h_k}{2}cp(2p-1) t_k^{2p-2} f(R_k)  - D_{h_k} L_{d_k} \\
+    & = \parenth{-\frac{p(p+1)}{h_k t_k^{p+1}} + \frac{p}{h_k^2 t_k^{p+1}}} \tr{(I-F_k)J_d} \\
+    & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
+        + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+    & = E^-_{d_k}\\
+    & D_{t_{k+1}} L_{d_k} = -\frac{p}{h_k^2 t_k^{p+1}} \tr{(I-F_k)J_d} \\
+    & - \frac{1}{2}c p t_k^{2p-1} f(R_k)
+- \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})  \\
+    & = - E^+_{d_k}
+\end{align*}
+We have
+\begin{align*}
+    D_{t_k} L_{d_k} + D_{t_k} L_{d_{k-1}} = 0\\
+    E^-_{d_k} = E^+_{d_{k-1}}.
+\end{align*}
+which yields
+\begin{align*}
+-\frac{p(p+1)}{h_k t_k^{p+1}} \tr{(I-F_k)J_d} \\
+    - \frac{h_k}{2}cp(2p-1) t_k^{2p-2} f(R_k)  
+ - \frac{h_k}{2}cp(2p-1) t_{k+1}^{2p-2} f(R_{k+1})  =0.
+\end{align*}
+
+Perform discrete Legendre transform to obtain
+\begin{gather*}
+\Pi_k =\frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+\Pi_{k+1} = \frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+= F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}
+\end{gather*}
+
+First consider, $\hat{\mathbb{F}}^+ L_d: (t_k,t_{k+1},R_k,F_k)\rightarrow(t_{k+1}, R_{k+1}, \Pi_{k+1}, E_{k+1})$
+\begin{align*}
+    \Pi_{k+1} & = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1},\\
+    E^+_{d_k} & = \frac{p}{h_k^2 t_k^{p+1}} \tr{(I-F_k)J_d} \\
+              & \quad + \frac{1}{2}c p t_k^{2p-1} f(R_k) \\
+              & \quad + \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})
+\end{align*}
+Also, $\hat{\mathbb{F}}^- L_d: (t_k,t_{k+1}, R_k, F_k)\rightarrow (t_k, R_k, \Pi_k, E_k)$ given by
+\begin{align*}
+    \Pi_k & =\frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+    E_k  
+          & = \parenth{-\frac{p(p+1)}{h_k t_k^{p+1}} + \frac{p}{h_k^2 t_k^{p+1}}} \tr{(I-F_k)J_d} \\
+          & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
+          + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}).
+\end{align*}
+The discrete Hamiltonian flow map is constructed by $\hat{\mathbb{F}}^+L_d \circ (\hat{\mathbb{F}}^-L_d)^{-1}$.
 
 \bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}
 \bibliographystyle{IEEEtran}
@@ -588,3 +746,5 @@ On the other hand,
     \delta  (R_{k+1}^TP_{k+1}) & = \delta (F_k^T R_k^T P_{k+1}) \\
                                & = -\hat\chi_k R_{k+1}^T P_{k+1} - F_k^T \hat \eta_k R_k^T P_{k+1} + R_{k+1}^T \delta P_{k+1}
 \end{align*}
+
+

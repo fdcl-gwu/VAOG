@@ -282,6 +282,8 @@ The Lagrangian is
     L(\Omega) = \frac{1}{2}\Omega \cdot J\Omega.
 \end{align*}
 
+
+
 \subsection{Discrete Lagrangian Mechanics on $\SO$}
 
 The discrete Lagrangian can be chosen as
@@ -619,10 +621,87 @@ with
 
 On a second thought, do we really need Hamiltonian system, given that we have VI for the time-varying Lagrangian system. 
 
+Bregman Lagrangian is
+\begin{align*}
+    L = e^{\alpha(t)+\gamma(t)} D_h(x+ e^{-\alpha(t)} v, x) - e^{\alpha+\beta+\gamma} f(x),
+\end{align*}
+where 
+\begin{align*}
+    \dot\beta \leq e^\alpha\\
+    \dot \gamma = e^\alpha.
+\end{align*}
+In particular, the following choice has been made. 
+For $p,C>0$,
+\begin{align*}
+    \alpha & = \log p - \log t\\
+    \beta & = p\log t + \log C\\
+    \gamma & = p \log t.
+\end{align*}
+Substituting these,
+\begin{align*}
+    L = p t^{p-1} D_h(x+ \frac{t}{p} v, x) - p C t^{2p-1} f(x).
+\end{align*}
+Further when $h(x)=\frac{1}{2}\|x\|^2$, 
+\begin{align*}
+    L = \frac{t^{p+1}}{2p} \| v\|^2 - p C t^{2p-1} f(x).
+\end{align*}
+
+
+\subsection{Continuous-Time EL}
+
 Consider
 \begin{align*}
-    L(t,R,\Omega) = \frac{p}{2t^{p+1}} \Omega\cdot J\Omega - cpt^{2p-1} f(R).
+    L(t,R,\Omega) = \frac{t^{p+1}}{2p} \Omega\cdot J\Omega - cpt^{2p-1} f(R).
 \end{align*}
+
+It has been shown that the variational principle in the extended space results in the same EL equation as for autonomous systems, and it does not matter how the time is reparameterized. 
+We have
+\begin{align*}
+    \D_\Omega L = \frac{t^{p+1}}{p} J\Omega,\\
+    \T^*_e \L_R( \D_R L) = cpt^{2p-1} M.
+\end{align*}
+and
+\begin{align*}
+    \frac{d}{dt} \D_\Omega L = \frac{p+1}{p} t^p J\Omega + \frac{t^{p+1}}{p} J\dot\Omega.
+\end{align*}
+Thus, the EL equation is given by
+\begin{align*}
+    \frac{t^{p+1}}{p} J\dot\Omega + \frac{p+1}{p} t^p J\Omega + \frac{t^{p+1}}{p} \hat\Omega J\Omega - cpt^{2p-1} M = 0,
+\end{align*}
+or
+\begin{align*}
+    J\dot\Omega + \frac{p+1}{t} J\Omega + \hat\Omega J\Omega - c p^2 t^{p-2} M = 0.
+\end{align*}
+
+Let
+\begin{align*}
+\Pi = \frac{t^{p+1}}{p} J\Omega
+\end{align*}
+We have
+\begin{align*}
+    \dot \Pi + \Omega\times \Pi - cpt^{2p-1} M = 0.
+\end{align*}
+and
+\begin{align*}
+    \dot R = \frac{p}{t^{p+1}} R (J^{-1}\Pi)^\wedge
+\end{align*}
+
+
+Let 
+\begin{align*}
+    f(R) & = \frac{1}{2}\| A- R\|^2_F = \frac{1}{2} \tr{(A-R)^T(A-R)}  \\
+         & =\frac{1}{2}(\|A\|^2 + 3) - \tr{A^T R}.
+\end{align*}
+Thus,
+\begin{align*}
+    \D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta.
+\end{align*}
+This implies
+\begin{align*}
+    M = (R^T A-A^T R)^\vee.
+\end{align*}
+
+\subsection{LGVI}
 The discrete Lagrangian is chosen as
 \begin{align*}
     & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{p}{h_k t_k^{p+1}} \tr{(I-F_k)J_d}\\

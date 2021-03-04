@@ -1,7 +1,6 @@
 function gdSO3
 global A p J C
 close all
-global A
 
 A=rand(3,3);%diag([5, 3, 1])*expm(pi*hat([1 1 1])/sqrt(3));
 [U S V]=psvd(A);
@@ -116,14 +115,16 @@ end
 
 function X_dot = eom_AGD_Pi(t,X)
 global p J C
+
 R=reshape(X(1:9),3,3);
+
 Pi=X(10:12);
 
 M = grad(R);
 W = J\(p/t^(p+1)*Pi);
 
 R_dot = R*hat(W);
-Pi_dot = -hat(W)*Pi + C*p^2*t^(p-2)*M;
+Pi_dot = -hat(W)*Pi + C*p*t^(2*p-1)*M;
 
 X_dot = [reshape(R_dot,9,1); Pi_dot];
 end

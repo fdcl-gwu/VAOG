@@ -44,8 +44,6 @@
     %\thanks{\textsuperscript{\footnotesize\ensuremath{*}}This research has been supported in part by NSF under the grant CNS-1837382.}%
 }
 
-% TODO: comment the following line for white background
-%\usepackage{xcolor}\pagecolor{black}\color{white}
 
 \newcommand{\RomanNumeralCaps}[1]{\textup{\uppercase\expandafter{\romannumeral#1}}}
 \newcommand{\RI}{\RomanNumeralCaps{1}}
@@ -62,6 +60,8 @@
 \newtheorem{remark}{Remark}
 
 \graphicspath{{./Figs/}}
+
+%\color{white}\pagecolor{black}
 
 \begin{document}
 \allowdisplaybreaks
@@ -702,9 +702,10 @@ This implies
 \end{align*}
 
 \subsection{LGVI}
+
 The discrete Lagrangian is chosen as
 \begin{align*}
-    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{p}{h_k t_k^{p+1}} \tr{(I-F_k)J_d}\\
+    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{t_{k}^{p+1}}{h_k p} \tr{(I-F_k)J_d}\\
     &- \frac{h_k}{2}c p t_k^{2p-1} f(R_k) - \frac{h_k}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),
 \end{align*}
 where $h_k = t_{k+1}-t_k$.
@@ -716,73 +717,74 @@ Let
 We have
 \begin{align*}
     D_{R_k} L_{d_k} &= \frac{h_k}{2} cp (t_k^{2p-1} M_k + t_{k+1}^{2p-1} F_k M_{k+1})\\
-    D_{F_k} L_{d_k} &= \frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1} \\
+    D_{F_k} L_{d_k} &= \frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1} \\
     \Ad^*_{F_k^T} & \T^*_e \L_{F_{k+1}} D_{F_k} L_{d_k}\\
-                    & = \frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} F_k M_{k+1} \\
+                    & = \frac{t^{p+1}_{k}}{h_k p} (F_k J_d - J_dF_k^T)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} F_k M_{k+1} \\
 \end{align*}
-Thus,
+Substituting these into DEL
 \begin{align*}
-\frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
--\frac{p}{h_{k+1} t_{k+1}^{p+1}} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee - \frac{h_{k+1}}{2} cpt^{2p-1}_{k+2} F_{k+1} M_{k+2}\\
+\frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+- \frac{t^{p+1}_{k+1}}{h_{k+1} p} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee - \frac{h_{k+1}}{2} cpt^{2p-1}_{k+2} F_{k+1} M_{k+2}\\
 + \frac{h_{k+1}}{2} cp (t_{k+1}^{2p-1} M_{k+1} + t_{k+2}^{2p-1} F_{k+1} M_{k+2})
 \end{align*}
 This yields DEL
 \begin{gather}
-\frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee 
--\frac{p}{h_{k+1} t_{k+1}^{p+1}} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee\nonumber \\
+\frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee 
+-\frac{t^{p+1}_{k+1}}{h_{k+1} p} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee\nonumber \\
 + \frac{h_k+h_{k+1}}{2} cp t_{k+1}^{2p-1} M_{k+1}  =0.
 \end{gather}
+Dividing both sides by ...
+\begin{gather}
+    \frac{(t_k/t_{k+1})^{p+1}}{h_k } (J_dF_k -F_k^T J_d)^\vee 
+-\frac{1}{h_{k+1} } (F_{k+1} J_d - J_dF_{k+1}^T)^\vee\nonumber \\
++ \frac{h_k+h_{k+1}}{2} cp^2 t_{k+1}^{p-2} M_{k+1}  =0.
+\end{gather}
+
 Also, for $t_k$
 \begin{align*}
-    D_{h_k} L_{d_k} = -\frac{p}{h_k^2 t_k^{p+1}} \tr{(I-F_k)J_d}\\
-    - \frac{1}{2}c p t_k^{2p-1} f(R_k) - \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+    & D_{h_k} L_{d_k} = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d}\\
+    & - \frac{1}{2}c p t_k^{2p-1} f(R_k) - \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
 \end{align*}
 Thus,
 \begin{align*}
-    & D_{t_k} L_{d_k} = -\frac{p(p+1)}{h_k t_k^{p+1}} \tr{(I-F_k)J_d} \\
-    &- \frac{h_k}{2}cp(2p-1) t_k^{2p-2} f(R_k)  - D_{h_k} L_{d_k} \\
-    & = \parenth{-\frac{p(p+1)}{h_k t_k^{p+1}} + \frac{p}{h_k^2 t_k^{p+1}}} \tr{(I-F_k)J_d} \\
+    & D_{t_k} L_{d_k} = 
+    \frac{(p+1)t_k^p}{p h_k} \tr{(I-F_k)J_d}  \\
+    & -\frac{h_k}{2}cp(2p-1) t_k^{2p-2} f(R_k)  - D_{h_k} L_{d_k} \\
+    & = \parenth{ \frac{(p+1)t_k^p}{p h_k} + \frac{t^{p+1}_{k}}{h_k^2 p} } \tr{(I-F_k)J_d} \\
     & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
         + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
     & = E^-_{d_k}\\
-    & D_{t_{k+1}} L_{d_k} = -\frac{p}{h_k^2 t_k^{p+1}} \tr{(I-F_k)J_d} \\
+    & D_{t_{k+1}} L_{d_k} = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} \\
     & - \frac{1}{2}c p t_k^{2p-1} f(R_k)
 - \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})  \\
     & = - E^+_{d_k}
 \end{align*}
 We have
-\begin{align*}
+\begin{gather*}
     D_{t_k} L_{d_k} + D_{t_k} L_{d_{k-1}} = 0\\
-    E^-_{d_k} = E^+_{d_{k-1}}.
-\end{align*}
-which yields
-\begin{align*}
--\frac{p(p+1)}{h_k t_k^{p+1}} \tr{(I-F_k)J_d} \\
-    - \frac{h_k}{2}cp(2p-1) t_k^{2p-2} f(R_k)  
- - \frac{h_k}{2}cp(2p-1) t_{k+1}^{2p-2} f(R_{k+1})  =0.
-\end{align*}
+    E^-_{d_k} = E^+_{d_{k-1}} \\
+\end{gather*}
 
 Perform discrete Legendre transform to obtain
 \begin{gather*}
-\Pi_k =\frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
-\Pi_{k+1} = \frac{p}{h_k t_k^{p+1}} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+    \Pi_k =\frac{t_{k+1}^{p+1} }{h_k p} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+    \Pi_{k+1} = \frac{t_{k+1}^{p+1} }{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
 = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}
 \end{gather*}
 
 First consider, $\hat{\mathbb{F}}^+ L_d: (t_k,t_{k+1},R_k,F_k)\rightarrow(t_{k+1}, R_{k+1}, \Pi_{k+1}, E_{k+1})$
 \begin{align*}
-    \Pi_{k+1} & = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1},\\
-    E^+_{d_k} & = \frac{p}{h_k^2 t_k^{p+1}} \tr{(I-F_k)J_d} \\
-              & \quad + \frac{1}{2}c p t_k^{2p-1} f(R_k) \\
-              & \quad + \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})
+&    \Pi_{k+1}  = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1},\\
+& -E_{k+1} = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} \\
+& - \frac{1}{2}c p t_k^{2p-1} f(R_k)
+- \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})  \\
 \end{align*}
 Also, $\hat{\mathbb{F}}^- L_d: (t_k,t_{k+1}, R_k, F_k)\rightarrow (t_k, R_k, \Pi_k, E_k)$ given by
 \begin{align*}
     \Pi_k & =\frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
-    E_k  
-          & = \parenth{-\frac{p(p+1)}{h_k t_k^{p+1}} + \frac{p}{h_k^2 t_k^{p+1}}} \tr{(I-F_k)J_d} \\
-          & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
-          + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}).
+    E_k & = \parenth{ \frac{(p+1)t_k^p}{p h_k} + \frac{t^{p+1}_{k}}{h_k^2 p} } \tr{(I-F_k)J_d} \\
+    & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
+        + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
 \end{align*}
 The discrete Hamiltonian flow map is constructed by $\hat{\mathbb{F}}^+L_d \circ (\hat{\mathbb{F}}^-L_d)^{-1}$.
 

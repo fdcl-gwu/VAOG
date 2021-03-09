@@ -1,0 +1,972 @@
+\documentclass[letterpaper, 10pt, conference]{ieeeconf}
+\IEEEoverridecommandlockouts \overrideIEEEmargins
+\usepackage{amsmath,amssymb,url}
+\usepackage{graphicx}%,subfigure}
+%\usepackage[all,import]{xy}
+\usepackage{color}
+\usepackage{siunitx}
+%\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+
+\newcommand{\norm}[1]{\ensuremath{\left\| #1 \right\|}}
+\newcommand{\abs}[1]{\ensuremath{\left| #1 \right|}}
+\newcommand{\bracket}[1]{\ensuremath{\left[ #1 \right]}}
+\newcommand{\braces}[1]{\ensuremath{\left\{ #1 \right\}}}
+\newcommand{\parenth}[1]{\ensuremath{\left( #1 \right)}}
+\newcommand{\ip}[1]{\ensuremath{\langle #1 \rangle}}
+\newcommand{\refeqn}[1]{(\ref{eqn:#1})}
+\newcommand{\reffig}[1]{Fig. \ref{fig:#1}}
+\newcommand{\tr}[1]{\mbox{tr}\ensuremath{\negthickspace\bracket{#1}}}
+\newcommand{\deriv}[2]{\ensuremath{\frac{\partial #1}{\partial #2}}}
+\newcommand{\G}{\ensuremath{\mathsf{G}}}
+\newcommand{\SO}{\ensuremath{\mathsf{SO(3)}}}
+\newcommand{\T}{\ensuremath{\mathsf{T}}}
+\renewcommand{\L}{\ensuremath{\mathsf{L}}}
+\newcommand{\so}{\ensuremath{\mathfrak{so}(3)}}
+\newcommand{\SE}{\ensuremath{\mathsf{SE(3)}}}
+\newcommand{\se}{\ensuremath{\mathfrak{se}(3)}}
+\renewcommand{\Re}{\ensuremath{\mathbb{R}}}
+\newcommand{\Sph}{\ensuremath{\mathsf{S}}}
+\newcommand{\aSE}[2]{\ensuremath{\begin{bmatrix}#1&#2\\0&1\end{bmatrix}}}
+\newcommand{\ase}[2]{\ensuremath{\begin{bmatrix}#1&#2\\0&0\end{bmatrix}}}
+\newcommand{\D}{\ensuremath{\mathbf{D}}}
+\newcommand{\pair}[1]{\ensuremath{\left\langle #1 \right\rangle}}
+\newcommand{\met}[1]{\ensuremath{\langle\!\langle #1 \rangle\!\rangle}}
+\newcommand{\Ad}{\ensuremath{\mathrm{Ad}}}
+\newcommand{\ad}{\ensuremath{\mathrm{ad}}}
+\newcommand{\g}{\ensuremath{\mathfrak{g}}}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\title{\LARGE \bf Variational Accelerated Optimization on a Lie Group}
+
+\author{Taeyoung Lee%\authorrefmark{1}%
+    \thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 10051 {\tt tylee@gwu.edu}}%
+    %\thanks{\textsuperscript{\footnotesize\ensuremath{*}}This research has been supported in part by NSF under the grant CNS-1837382.}%
+}
+
+
+\newcommand{\RomanNumeralCaps}[1]{\textup{\uppercase\expandafter{\romannumeral#1}}}
+\newcommand{\RI}{\RomanNumeralCaps{1}}
+\newcommand{\RII}{\RomanNumeralCaps{2}}
+\newcommand{\RIII}{\RomanNumeralCaps{3}}
+
+\newcommand{\EditTL}[1]{{\color{red}\protect #1}}
+\renewcommand{\EditTL}[1]{{\protect #1}}
+
+
+\newtheorem{definition}{Definition}
+\newtheorem{lem}{Lemma}
+\newtheorem{prop}{Proposition}
+\newtheorem{remark}{Remark}
+
+\graphicspath{{./Figs/}}
+
+%\color{white}\pagecolor{black}
+
+\begin{document}
+\allowdisplaybreaks
+
+
+\maketitle \thispagestyle{empty} \pagestyle{empty}
+
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}
+
+\section{Hamiltonian Mechanics}
+
+
+Consider  an $n$-dimensional Lie group $\G$.
+Let $\g$ be the tangent space at the identity, i.e., $\g = \T_e\G$, or the lie algebra. 
+The tangent bundle of the group is identified with $\T\G \simeq G\times \g$ via left trivialization.
+More specifically, let $\L:\G\times\G\rightarrow\G$ be the left action defined such that $\L_g h = gh$ for $g,h\in\G$.
+For any $v\in\T_g\G$, there exists $\xi\in\g$ such that $v =\T_e\L_g \xi=g\xi$.
+Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which is extended to the corresponding inner product on $\T_g\G$ through the left trivialization, i.e., for any $v,w\in\T_g\G$, we have $\pair{w,v}_{\T_g\G} = \pair{ \T_g \L_{g^{-1}} v, \T_g \L_{g^{-1}} w}_\g$. 
+Considering the inner product as a pairing between a tangent vector and a cotangent vector, $g\simeq g^*$ and $\T_g \G \simeq \T^*_g \G\simeq G\times \g^*$.
+Throughout this paper, the pairing is also denoted by $\cdot$.
+
+\subsection{Variational Principle in Phase Space}
+
+Consider a Hamiltonian system evolving on $\G$, with the Hamiltonian given by $H(g,\mu): \G\times \g^* \rightarrow \Re$.
+The corresponding Hamiltonian flow $g(t),\mu(t)$ can be formulated with variational principles in the phase space.
+Considering the flow map from the initial state $(g(t_0),\mu(t_0))$ to the terminal state $(g(t_f),\mu(t_f))$ as a canonical transform, the variational principle can be formulated in four types of generating functions. 
+
+First, consider the following functional dependent of a curve $(g(\cdot),\mu(\cdot))$ on $\G\times \g^*$ over $[t_0,t_f]$,
+\begin{align}
+    \mathfrak{G}_\RI = \int_{t_0}^{t_f} \mu \cdot \xi - H(g,\mu) \, dt,\label{eqn:G10}
+\end{align}
+where $\xi\in\g$ is defined such that
+\begin{align}
+    \dot g = \T_e \L_{g}\, \xi = g\xi.\label{eqn:g_dot}
+\end{align}
+The Hamilton's phase space variational principle states that the solution of following Hamilton's equations with the fixed boundary conditions $g(t_0)=g_0$ and $g(t_f)=g_f$ extremizes the functional, as presented in~\cite[Section 8.6.5]{LeeLeo17}:
+\begin{align}
+    \dot \mu & = \ad^*_{H_\mu(g,\mu)} \mu - \T^*_e \L_g (\D_g H(g,\mu)),\label{eqn:mu_dot}\\
+    \dot g & = g H_\mu (g,\mu),\label{eqn:g_dot_H}
+\end{align}
+where $\ad^*$ is the coadjoint operator and $\D_g$ denotes the differential. 
+Once the functional is evaluated with the solution of the above equations satisfying the boundary condition, it is rewritten as $\mathfrak{G}_\RI(g_0, g_f)$, which corresponds to the type $\RI$ generating function.
+
+Further, replacing $t_f$ with an arbitrary time $t$, and taking the variation of $\mathfrak{G}_\RI$ with the end point $(g, t)$,
+\begin{align}
+    \delta\mathfrak{G}_\RI = \deriv{ \mathfrak{G}_\RI}{t} \delta t + \D_g\mathfrak{G}_\RI \cdot \delta g  = g\mu \cdot \delta g - H(g,\mu) \delta t,\label{eqn:G1}
+\end{align}
+which yields
+\begin{align}
+    \mu =\T^*_e \L_g (\D_g \mathfrak{G}_\RI).
+\end{align}
+and the Hamilton-Jacobi equation
+\begin{align}
+    \deriv{ \mathfrak{G}_\RI}{t} + H(g, \T^*_e \L_g (\D_g \mathfrak{G}_\RI )) = 0.
+\end{align}
+These summarize the phase space variational principle to recover the Hamilton's equations with the type $\RI$ generating function. 
+
+Next, we formulate the variational principle with the type $\RII$ generating function to discretize the Hamilton's equations.
+The type $\RII$ generating function is constructed by the Legendre transform of the type $\RI$ generating function as
+\begin{align}
+    \mathfrak{G}_\RII (g_0, p_f) = \sup_{g_f}  \{ p_f \cdot g_f - \mathfrak{G}_\RI (g_0,g_f) \},\label{eqn:G2}
+\end{align}
+where $p_f$ is conjugate to $g_f$ determined by
+\begin{align}
+    p_f = \D_{g_f} \mathfrak{G}_\RI (g_0,g_f) = g_f\mu_f.
+\end{align}
+Similar with the type $\RI$ case, the type $\RII$ generating function can be considered as a functional dependent of $(g(\cdot),\mu(\cdot))$ with the fixed boundary conditions $g(t_0)=g_0$ and $p(t_f)=p_f$.
+The corresponding phase space variational principle is presented as follows.
+
+\begin{prop}\label{prop:PVPII}
+    The solution of the Hamilton's equations \eqref{eqn:mu_dot} and \eqref{eqn:g_dot_H} with the boundary condition $g(t_0)=g_0$ and $p(t_f)=p_f$ extremizes \eqref{eqn:G2} that is considered as a functional.
+\end{prop}
+\begin{proof}
+    The infinitesimal variation of \eqref{eqn:G2} is
+\begin{align}
+    \delta\mathfrak{G}_\RII & = p_f \cdot \delta g(t_f)\nonumber\\
+                            & \quad - \int_{t_0}^{t_f} \braces{ \mu \cdot \delta\xi - \pair{\D_g H, \delta g} +\delta\mu \cdot \parenth{ \xi - H_\mu}} dt,\label{eqn:delta_G_0}
+\end{align}
+where $\delta g$ can be written as $\delta g = g\eta$ for $\eta\in\g$.
+Since taking the time-derivatives commutes with taking the variation, from \eqref{eqn:g_dot}, we obtain $\delta \dot g = g\eta\xi + g\delta \xi = g\xi \eta + g \dot\eta$, which yields 
+\begin{align}
+\delta \xi = \dot \eta + \ad_\xi\eta.
+\end{align}
+Substituting these into \eqref{eqn:delta_G_0} and rearranging
+\begin{align*}
+    \delta\mathfrak{G}_\RII & = \mu_f \cdot \eta(t_f)\\
+                            & \quad - \int_{t_0}^{t_f} \{ \mu\cdot\dot\eta + (\ad^*_\xi\mu - \T^*_e \L_g (\D_g H))\cdot \eta \\
+                            & \qquad + \delta\mu\cdot(\xi- H_\mu)\}\,dt.
+\end{align*}
+Integrating the second term on the right side by parts, and using $\eta(t_0)=0$, 
+\begin{align*}
+    \delta\mathfrak{G}_\RII & = 
+     - \int_{t_0}^{t_f} \{  (-\dot \mu+\ad^*_\xi\mu - \T^*_e \L_g (\D_g H))\cdot \eta \\
+                            & \qquad + \delta\mu\cdot(\xi- H_\mu)\}\,dt.
+\end{align*}
+To extremize $\mathfrak{G}_\RII$, we should have $\delta\mathfrak{G}_\RII=0$ for any $\eta(t),\delta\mu(t)$, and this yields \eqref{eqn:mu_dot} and \eqref{eqn:g_dot_H}.
+\end{proof}
+
+\subsection{Hamiltonian Variational Integrator}
+
+Variational integrators are geometric numerical integration schemes interpreted as discrete-time mechanics, and traditionally, they were constructed by discretizing the variational principle for Lagrangian mechanics~\cite{MarWesAN01}.
+For Lagrangian mechanics evolving on a Lie group, the corresponding Lie group variational integrators are presented in~\cite{Leo04,Lee08,LeeLeoCMAME07}.
+
+On the other hand, the discrete Hamiltonian mechanics has been formulated from generating functions~\cite{de2007discrete,LalWesJPMG06}, where the type $\RII$  and the type $\RIII$ generating functions over a time step are referred to as the \textit{right} and the \textit{left} discrete Hamiltonian, respectively. 
+In fact, the discrete Lagrangian can be considered as the type $\RI$ generating function.
+These are further developed into the discrete Hamilton-Jacobi theory~\cite{OhsBloSJCO11} and higher-order integrators~\cite{leok2011discrete}, respectively.
+
+In this subsection, we present the discrete counterpart of the previous section, where Lie group Hamiltonian variational integrator is constructed. 
+Let the time span be discretized with a time step $h>0$ into a sequence indexed by integer $k$, i.e., $\{t_0,t_1,\ldots\}$.
+The subscript $k$ denotes the value of a variable at $t=t_k$.
+The sequence of $g_k$ is marched by
+\begin{align}
+    g_{k+1} = g_k f_k,\label{eqn:gkp}
+\end{align}
+where $f_k\in\G$ represents the relative update of the group elements over a timestep. 
+The exact discrete Lagrangian is the type $\RI$ generating function \eqref{eqn:G1} over a discrete time step,
+\begin{align*}
+    L_d (g_k, f_k) = \mathfrak{G}_\RI (g_k, g_kf_k),
+\end{align*}
+which is evaluated along the solution of \eqref{eqn:mu_dot} and \eqref{eqn:g_dot_H} satisfying $g(t_k)=g_k$ and $g(t_{k+1})=g_kf_k$.
+Then, \eqref{eqn:G1} can be considered as a functional for a discrete trajectory $\{g_k,f_k\}_{k=0}^{N-1}$ given by
+\begin{align}
+    \mathfrak{G}^d_\RI = \sum_{k=0}^{N-1} L_d(g_k,f_k).\label{eqn:G1d}
+\end{align}
+According to the variational principle, the discrete Euler-Lagrange equations are constructed as follows. 
+
+\begin{prop}
+    The discrete trajectory of $\{(g_k,f_k)\}_{k=0}^{N-1}$ extremizing \eqref{eqn:G1d} with the fixed $g_0$ and $g_N$ constructed by the following discrete Euler-Lagrange equation,
+    \begin{gather}
+        \T^*_e\L_{g_k}(\D_{g_k} L_{d_k})- \Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} L_{d_k}))\nonumber \\
+        + \T^*_e\L_{f_{k-1}}(\D_{f_{k-1}} L_{d_{k-1}}) =0,\label{eqn:DEL}
+    \end{gather}
+    and \eqref{eqn:gkp}.
+\end{prop}
+\begin{proof}
+    From \eqref{eqn:gkp},
+    \begin{align*}
+        \delta f_k = - g_k^{-1}( \delta g_k ) g_k^{-1} g_{k+1} + g_k^{-1}\delta g_{k+1}.
+    \end{align*}
+    Since $\delta g_k = g_k \eta_k $ for $\eta_k\in \g$, this is rewritten as
+    \begin{align*}
+        \delta f_k = - \eta_k f_k +f_k \eta_{k+1}.
+    \end{align*}
+    Or equivalently, 
+    \begin{align}
+        f_k^{-1}\delta f_k = -\Ad_{f_k^{-1}} \eta_k + \eta_{k+1}.\label{eqn:del_fk}
+    \end{align}
+
+    Taking the variation of \eqref{eqn:G1d} and substituting \eqref{eqn:del_fk},
+    \begin{align*}
+        \delta \mathfrak{G}^d_\RI  = \sum_{k=0}^{N-1}
+        & \T^*_e\L_{g_k}(\D_{g_k} L_{d_k}) \cdot \eta_k \\
+        & + \T^*_e\L_{f_k}(\D_{f_k} L_{d_k}) \cdot (-\Ad_{f_k^{-1}} \eta_k + \eta_{k+1}).
+    \end{align*}
+    Using $\eta_0=\eta_N=0$, the summation can be rewritten as
+    \begin{align*}
+        \delta \mathfrak{G}^d_\RI  = \sum_{k=1}^{N-1}
+        & \{ \T^*_e\L_{g_k}(\D_{g_k} L_{d_k})- \Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} L_{d_k})) \} \cdot \eta_k \\
+        & + (\T^*_e\L_{f_{k-1}}(\D_{f_{k-1}} L_{d_{k-1}})) \cdot \eta_{k}.
+    \end{align*}
+    According to the variational principle, $\delta\mathfrak{G}^d_\RI = 0$ for any $\eta_k$, and this yields \eqref{eqn:DEL}.
+\end{proof}
+
+
+The exact discrete Hamiltonian of the type $\RII$ is the generating function 
+\begin{align}
+    H^d_\RII (g_k, p_{k+1}) = \sup_{g_{k+1}} \{ p_{k+1}\cdot g_{k+1} - L_d(g_k,g_k^{-1} g_{k+1})\}
+\end{align}
+which implies
+\begin{align*}
+    p_{k+1} \cdot g_{k+1}\eta_{k+1} -  \D_{f_k} L_d(g_k, f_k )\cdot f_k \eta_{k+1} =0.
+\end{align*}
+Thus, we have
+\begin{align}
+    \mu_{k+1} = g_{k+1}^{-1} p_{k+1} = \T^*_e\L_{f_k} (\D_{f_k} L_{d_k}).\label{eqn:DLT+}
+\end{align}
+Then, \eqref{eqn:G2} can be considered as a functional for a discrete trajectory $\{g_k,\mu_k\}_{k=0}^N$ given by
+\begin{align}
+    \mathfrak{G}_\RII^d = p_N\cdot g_N - \sum_{k=0}^{N-1} \{p_{k+1}\cdot g_{k+1} - H_d(g_k,\mu_{k+1})\}.
+\end{align}
+In analogous to \Cref{prop:PVPII}, the type $\RII$ discrete phase space variational principle states that $\delta\mathfrak{G}_\RII^d=0$ for any discrete trajectory with the fixed boundary condition $(g_0,g_N\mu_N)= (g_0,p_N)$~\cite{leok2011discrete}.
+This yields the discrete Hamilton's equations as follows. 
+
+\begin{prop}
+    \begin{align}
+        p_k & = \D_{g_k} H_d( g_k, p_{k+1}),\label{eqn:DHE_q}\\
+        g_{k+1} & = \D_{p_{k+1}} H_d(g_{k}, p_{k+1}).\label{eqn:DHE_g}
+    \end{align}
+\end{prop}
+\begin{proof}
+    The variation of $\mathfrak{G}_\RII^d$ is
+\begin{align*}
+    \delta \mathfrak{G}_\RII^d 
+    & =  - \sum_{k=1}^{N-1} \delta p_k \cdot g_k + p_k \cdot \delta g_k\\
+    & \quad +\sum_{k=0}^{N-1} \D_{g_k} H_{d_k} \cdot \delta g_k + \D_{p_{k+1}} H_{d_k} \cdot \delta p_{k+1}\\
+    & =  - \sum_{k=1}^{N-1} \delta p_k \cdot g_k + p_k \cdot \delta g_k\\
+    & \quad +\sum_{k=1}^{N-1} \D_{g_k} H_{d_k} \cdot \delta g_k + \D_{p_{k}} H_{d_{k-1}} \cdot \delta p_{k}\\
+    & \quad +\D_{g_0} H_{d_0} \cdot \delta g_0 + \D_{p_{N}} H_{d_{N-1}} \cdot \delta p_{N}.
+\end{align*}
+From the fixed boundary conditions, $\delta g_0 = \delta p_N=0$. 
+Since $\delta \mathfrak{G}_\RII^d =0$ for any $\delta g_k, \delta p_k$, this yields \eqref{eqn:DHE_q} and \eqref{eqn:DHE_g}.
+\end{proof}
+
+
+\section{Attitude Dynamics of a Rigid Body on $\SO$}
+
+Consider the attitude dynamics of a rigid body described by
+\begin{gather*}
+    J\dot\Omega + \Omega\times J\Omega = 0, \\
+    \dot R = R\hat\Omega.
+\end{gather*}
+
+The Lagrangian is
+\begin{align*}
+    L(\Omega) = \frac{1}{2}\Omega \cdot J\Omega.
+\end{align*}
+
+
+
+\subsection{Discrete Lagrangian Mechanics on $\SO$}
+
+The discrete Lagrangian can be chosen as
+\begin{align*}
+    L_d (F_k) = \frac{1}{h} \tr{ (I-F_k) J_d},
+\end{align*}
+where $J_d = \frac{1}{2}\tr{J}I- J$.
+Equations \eqref{eqn:DEL} yields the discrete Euler-Lagrange equation
+\begin{align*}
+    \frac{1}{h} ( F_{k+1}J_d - J_d F_{k+1}^T ) -\frac{1}{h} (J_d F_k - F_k^T J_d) = 0.
+\end{align*}
+For given $(R_k,F_k)$, the above can be solved for $F_{k+1}$ to yield $(R_{k+1}, F_{k+1})$.
+
+From the (right) discrete Legendre transform given by \eqref{eqn:DLT+},
+\begin{align}
+    R_{k+1}^T P_{k+1}  = \frac{1}{h}(J_d F_k - F_k^T J_d) =\hat p_{k+1}. \label{eqn:Pkp}
+\end{align}
+Similarly, from the (left) discrete Legendre transform, one can show
+\begin{align*}
+    R_k^T P_k = \frac{1}{h} (F_k J_d - J_d F_k^T) = \hat p_k.
+\end{align*}
+Therefore, the discrete EL equation can also be written as
+\begin{align*}
+    \hat p_{k+1} = F_k^T \hat p_k F_k  = \Ad^*_{F_k} \hat p_k = (F_k^Tp_k)^\wedge
+\end{align*}
+
+\subsection{Discrete Hamiltonian Mechanics on $\SO$}
+
+From Lall and West, the type II discrete Hamiltonian is chosen as
+\begin{align*}
+    H_d (R_k, P_{k+1}) 
+    & = P_{k+1} \cdot R_k   + \frac{h}{2} \mu_{k+1} \cdot J^{-1} \mu_{k+1}\\
+    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ J^{-1} \mu_{k+1}\mu_{k+1}^T}.
+\end{align*}
+Since $xx^T = \hat x^2 -\frac{1}{2}\tr{\hat x^2}I_{3\times 3}$, it can be rearranged into
+\begin{align*}
+    H_d (R_k, P_{k+1}) 
+     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K \hat \mu_{k+1}^T \hat \mu_{k+1}} 
+\end{align*}
+where $K = \frac{1}{2}\tr{J^{-1}} I_{3\times 3}-J^{-1} \in\Re^{3\times 3} $.
+This further implies
+\begin{align}
+    H_d (R_k, P_{k+1}) 
+     & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K P_{k+1}^T P_{k+1}}.
+\end{align}
+
+The derivative of the discrete Hamiltonian is
+\begin{align*}
+    \D_{R_k} H_d \cdot \delta R_k = P_{k+1} \cdot \delta R_k = P_k \cdot \delta R_k.
+\end{align*}
+This implies the \textit{projection} of $P_{k+1}$ to $\T_{R_k} \SO$ is equal to $P_k$, or $P_{k+1} F_k^T = P_k$. 
+Thus
+\begin{align*}
+    R_{k+1} \hat \mu_{k+1} F_k^T = R_k \hat \mu_k,
+\end{align*}
+or
+\begin{align*}
+    R_k F_k  \hat\mu_{k+1} F_k^T = R_k \hat \mu_k,
+\end{align*}
+or
+\begin{align}
+    F_k \mu_{k+1} = \mu_k,
+\end{align}
+which is consistent with LGVI, and it implies the conservation of the angular momentum.
+However, if we don't use the \textit{projection},
+\begin{align*}
+    & \D_{R_k} H_d \cdot \delta R_k 
+    =\frac{1}{2} \tr{-\hat\eta_k Q_k} \\
+    & = \frac{1}{2} ( Q_k- Q_k^T )^\vee\cdot \eta_k,
+\end{align*}
+where $Q_k = R_k^T P_{k+1} = F_k \hat\mu_{k+1}$.
+Thus,
+\begin{align*}
+    \mu_k 
+          & = \frac{1}{2} (F_k\hat\mu_{k+1}+\hat\mu_{k+1}F_k^T )^\vee\nonumber \\
+          & = \frac{1}{2}(\tr{F_k}I_{3\times 3}-F_k^T)  \mu_{k+1}.
+\end{align*}
+Unfortunately, this implies that the angular momentum is not preserved. 
+Let's stick to the idea of projection for now. 
+
+Next, the derivative with respect to $P_{k+1}$ is 
+\begin{align*}
+    \D_{P_{k+1}} H_d & = \frac{1}{2}\tr{ R_k^T \delta P_{k+1}} + h\tr{K \delta P_{k+1}^T P_{k+1} } \\
+                     & = ( R_k + 2h P_{k+1}K ) \cdot \delta P_{k+1}
+\end{align*}
+Thus, 
+\begin{gather*}
+0 = (- R_{k+1} +  R_k + 2h P_{k+1}K ) \cdot \delta P_{k+1},\\
+0 = (- I +  F_k^T + 2h \hat\mu_{k+1} K ) \cdot \delta \hat p_{k+1}.
+\end{gather*}
+This implies
+\begin{gather}
+    2h \hat\mu_{k+1} K + 2h K \hat\mu_{k+1} = F_k - F_k^T\nonumber\\
+2h (\tr{K}I_{3\times 3} - K )\mu_{k+1} = (F_k- F_k^T)^\vee.
+\end{gather}
+
+
+\begin{align*}
+    H_d (R_k, P_{k+1}) 
+    & = \frac{1}{2}\tr{R_k^T P_{k+1}}   + \frac{h}{2} \tr{ K R_k^T P_{k+1} P_{k+1}^T R_k }.
+\end{align*}
+
+The variation of the discrete Hamiltonian is
+\begin{align*}
+    & \D_{R_k} H_d \cdot \delta R_k =\frac{1}{2} \tr{-\hat\eta_k Q_k} - h \tr{\hat\eta_k Q_kQ_k^T K } \\
+    & = ( (Q_k^T- Q_k)/2 +h Q_kQ_k^TK  - hK Q_k Q_k^T)^\vee\cdot \eta_k
+\end{align*}
+where $Q_k = R_k^T P_{k+1} = F_k \hat\mu_{k+1}$.
+Thus,
+\begin{align}
+    \mu_k 
+          & = ((F_k\hat\mu_{k+1}-\hat\mu_{k+1}F_k^T)/2 - h \widehat{F_k\mu_{k+1}}^2 K +  h K \widehat{F_k\mu_{k+1}}^2)^\vee\nonumber \\
+          & = \{ \frac{1}{2}(\tr{F_k}I_{3\times 3}-F_k^T) -h (KF_k\mu_{k+1})^\wedge F_{k+1}  \}  \mu_{k+1}.
+\end{align}
+Also,
+\begin{align*}
+    \D_{P_{k+1}} H_d & = \frac{1}{2}\tr{ R_k^T \delta P_{k+1}} + h\tr{KR_k^T \delta P_{k+1} P_{k+1}^T R_k} \\
+                     & = ( R_k + 2h R_k K R_k^T P_{k+1}) \cdot \delta P_{k+1}
+\end{align*}
+Thus, 
+\begin{gather*}
+0 = (- R_{k+1} +  R_k + 2h R_k K R_k^T P_{k+1}) \cdot \delta P_{k+1},\\
+0 = (- I +  F_k^T + 2h F_k^T K F_k \hat\mu_{k+1}) \cdot \delta \hat p_{k+1}.
+\end{gather*}
+This implies
+\begin{gather}
+2h F_k^T K F_k \hat\mu_{k+1} + 2h \hat\mu_{k+1} F_k^T K F_k = F_k - F_k^T\nonumber\\
+2h (\tr{K}I_{3\times 3} - F_k^T K F_k)\mu_{k+1} = (F_k- F_k^T)^\vee.
+\end{gather}
+
+
+\subsection{Symplectic Form on $\SO$}
+
+We have $\hat\mu = R^T  P$.
+\begin{align*}
+\delta \hat \mu = -\hat\eta R^T P + R^T \delta P.
+\end{align*}
+Solve this for $\delta P$,
+\begin{align*}
+R \delta \hat \mu + R\hat\eta R^T P + \delta P,\\
+R \delta \hat \mu + R\hat\eta \hat\mu+ \delta P.
+\end{align*}
+Substituting these into the canonical form on $\T^*\SO$
+\begin{align*}
+    & \omega( R, P) ((\delta R_1, \delta P_1),(\delta R_2, \delta P_2)) \\
+    & = \pair{\delta P_2, \delta R_1}-\pair{\delta P_1, \delta R_2} \\
+    & = \pair{\delta\hat\mu_2 +\hat\eta_2\hat\mu, \hat\eta_1} 
+    -\pair{\delta\hat \mu_1 + \hat\eta_1\hat\mu, \hat \eta_2}\\
+    & = \delta \mu_2 \cdot \eta_1 - \delta \mu_1 \cdot \eta_2 + \mu \cdot (\eta_1\times \eta_2)\\
+    & = \omega_L(R,\mu) ((\eta_1, \delta \mu_1), (\eta_2,\delta\mu_2)).
+\end{align*}
+In a matrix form, 
+\begin{align*}
+    & \omega_L(R,\mu) ((\eta_1, \delta \mu_1), (\eta_2,\delta\mu_2))\\
+    & =    \begin{bmatrix} \eta_1 \\ \mu_1 \end{bmatrix}^T
+    \begin{bmatrix} -\hat\mu & I_{3\times 3}\\
+        -I_{3\times 3} & 0_{3\times 3} 
+    \end{bmatrix}
+    \begin{bmatrix} \eta_2 \\ \mu_2 \end{bmatrix} \\
+    & =    \begin{bmatrix} \eta_1 \\ \mu_1 \end{bmatrix}^T
+    \mathbb{J}_L(\mu)
+    \begin{bmatrix} \eta_2 \\ \mu_2 \end{bmatrix}.
+\end{align*}
+One can show
+\begin{align*}
+    \mathbb{J}_L(\mu) & = -\mathbb{J}_L^T(\mu) \\
+    \mathbb{J}^{-1}_L(\mu) & = 
+    \begin{bmatrix} 0_{3\times 3} & -I_{3\times 3}\\
+        I_{3\times 3} & \hat\mu
+    \end{bmatrix},\\
+        \mathbb{J}^{-T}_L(\mu) \mathbb{J}(\mu) & =
+    \begin{bmatrix} -I_{3\times 3} & 0_{3\times 3}\\
+        -2 \hat\mu & -I_{3\times 3} 
+    \end{bmatrix}.
+\end{align*}
+The Hamiltonian vector field is defined by
+\begin{align*}
+    \omega( X_H(z), \delta z) = dH(z) \cdot \delta z
+\end{align*}
+or
+\begin{align*}
+    X_H = \mathbb{J}^{-T} dH.
+\end{align*}
+In the reduced form, we have
+\begin{align*}
+    \begin{bmatrix} (R^T \dot R)^\vee \\ \dot \mu \end{bmatrix}
+    =
+    \begin{bmatrix} 0_{3\times 3} & I_{3\times 3}\\
+        -I_{3\times 3} & -\hat\mu
+    \end{bmatrix}
+    \begin{bmatrix}
+        \T^* \L_R (D_RH)\\
+        H_\mu
+    \end{bmatrix},
+\end{align*}
+which yields
+\begin{align*}
+    \dot R & = R \hat H_\mu,\\
+    \dot \mu & = -\hat\mu H_\mu - \T^* \L_R (D_RH).
+\end{align*}
+
+\section{Hamiltonian Variational Integrator}
+
+Let's try to approximate \eqref{eqn:G10} directly, without any canonical transform, as in~\cite{ma2010lie,de2018lie}. 
+We have
+\begin{align*}
+    \frac{1}{h} R_k^T(R_{k+1}-R_k) = \frac{1}{h} (F_k - I_{3\times 3}) \approx \hat\Omega_k.
+\end{align*}
+Or, $\hat\Omega_k$ is approximated by the skew-symmetric part of it to obtain
+\begin{align*}
+    h\hat\Omega_k =\frac{1}{2}( F_k-F_k^T).
+\end{align*}
+
+We have
+\begin{align*}
+    &\mathfrak{G}_k(R_k,\Pi_k,F_k) = \frac{1}{2}\Pi_k \cdot (F_k-F_k^T)^\vee\\
+    &- \frac{h}{2} \Pi_k\cdot J^{-1}\Pi_k -\frac{h}{2}U(R_k) -\frac{h}{2} U(R_kF_k).
+\end{align*}
+Also,
+\begin{align*}
+    \delta F_k = -\hat\eta_k F_k + F_k\hat\eta_{k+1}.
+\end{align*}
+Now,
+\begin{align*}
+    \delta \mathfrak{G}_k & = \frac{1}{2}(F_k-F_k^T)^\vee \cdot \delta \Pi_k -h J^{-1}\Pi_k \cdot \delta\Pi_k \\
+                          &\quad + \frac{1}{2} \Pi_k \cdot (\delta F_k -\delta F_k^T)^\vee\\
+   &\quad +\frac{h}{2} M_k\cdot \eta_k + \frac{h}{2} M_{k+1} \cdot \eta_{k+1},
+\end{align*}
+where
+\begin{align*}
+    \delta F_k -\delta F_k^T & = -\hat\eta_k F_k -F_k^T \hat\eta_k + F_k\hat\eta_{k+1} + \hat\eta_{k+1} F_k^T \\
+    & = -((\tr{F_k}I_{3\times 3}-F_k) \eta_k )^\wedge \\
+    & \quad  + ((\tr{F_k}I_{3\times 3}-F_k^T) \eta_{k+1} )^\wedge.
+\end{align*}
+Substituting this
+\begin{align*}
+    \delta \mathfrak{G}_k & = (\frac{1}{2}(F_k-F_k^T)^\vee  -h J^{-1}\Pi_k) \cdot \delta\Pi_k \\
+                          &\quad +\frac{1}{2} ( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k + hM_k ) \cdot \eta_k\\
+                          &\quad +\frac{1}{2} ( +(\tr{F_k}I_{3\times 3} -F_k)\Pi_k + hM_{k+1} ) \cdot \eta_{k+1}.
+\end{align*}
+
+
+Thus,
+\begin{align*}
+    \delta\mathfrak{G} & = \sum_{k=0}^{N-1} \delta\mathfrak{G}_k \\
+                       & = \sum_{k=1}^{N-1} (\frac{1}{2}(F_k-F_k^T)^\vee  -h J^{-1}\Pi_k) \cdot \delta\Pi_k \\
+                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( -(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k + h M_k ) \cdot \eta_k\\
+                       &\quad + \sum_{k=1}^{N-1} \frac{1}{2}( (\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} + h M_{k} ) \cdot \eta_{k}.
+\end{align*}
+Thus,
+\begin{gather}
+    \frac{1}{2}(F_k -F_k^T)^\vee = hJ^{-1}\Pi_k,\\
+(\tr{F_k}I_{3\times 3} -F_k^T)\Pi_k - 2 h M_k = 
+(\tr{F_{k-1}}I_{3\times 3} -F_{k-1})\Pi_{k-1} .
+\end{gather}
+Both equations should be solved together for $F_k,\Pi_k$.
+But, the first implies
+\begin{align*}
+    f_k = h J^{-1}\Pi_k,
+\end{align*}
+or
+\begin{align*}
+    F_k = \exp (h \widehat{J^{-1}\Pi_k}).
+\end{align*}
+The second should be solved for $\Pi_k$.
+
+
+Alternatively, assume that
+\begin{align*}
+    J^{-1} (F_k J_d - J_d F_k^T)^\vee \approx h\Omega_k.
+\end{align*}
+We have
+\begin{align*}
+    \mathfrak{G}_k & =  \Pi_k \cdot J^{-1} (F_k J_d - J_d F_k^T)^\vee  \\
+    &\quad - \frac{h}{2} \Pi_k \cdot J^{-1}\Pi_k - \frac{h}{2} U(R_k) - \frac{h}{2} U(R_k F_k).
+\end{align*}
+Also,
+\begin{align*}
+    & \delta F_k J_d - J_d\delta F_k^T =-\hat\eta_k F_k J_d -J_d F_k^T\hat\eta_k\\
+    & + F_k\hat\eta_{k+1} J_d + J_d \hat\eta_{k+1} F_k^T\\
+    & = - (\tr{F_kJ_d}I_{3\times 3} -F_k J_d)\eta_k\\
+    & + (\tr{F_kJ_d}I_{3\times 3} - F_kJ_d)\eta_{k+1}.
+\end{align*}
+Now,
+\begin{align*}
+    \delta \mathfrak{G} & = ( (F_k J_d - J_d F_k^T)^\vee  - h\Pi_k) \cdot J^{-1}\delta\Pi_k\\
+                        & \quad J^{-1}\Pi_k \cdot (
+\end{align*}
+The resulting integrators are
+\begin{gather*}
+(F_k J_d - J_d F_k^T)^\vee  = h\Pi_k \\
+(\tr{F_kJ_d}I_{3\times 3} -F_k J_d)^T J^{-1}\Pi_k - hM_k\\ =
+(\tr{F_{k-1}J_d}I_{3\times 3} -F_{k-1} J_d)^T J^{-1}\Pi_{k-1} .
+\end{gather*}
+The first one is identical to the LGVI, but not the second one. 
+For given $\Pi_k$, the first one is solved for $F_k$. 
+Then, the second should be solved for $F_{k+1}$.
+Numerically, it is slower and it has larger energy error. 
+So, we wouldn't study it further. 
+
+\section{Bregman Dynamics for Optimization}
+
+Consider
+\begin{align*}
+    H_p(t,g,\mu) = \frac{p}{2t^{p+1}} \pair{\mu,\mu} + cp t^{2p-1} f(g).
+\end{align*}
+This is transformed into autonomous system by extending the configuration space into $\G\times \Re$.
+\begin{align*}
+    \bar H (g,t,\mu,E) = H(g,\mu,t) -E,
+\end{align*}
+where
+\begin{align*}
+    E = E(\tau) = H(t(\tau), g(\tau),\mu(\tau)).
+\end{align*}
+Now we have $((g,t),(\mu,-E)) = (\G\times \Re)\times(g^*, \Re)$.
+
+The variational principle is
+\begin{align*}
+    \mathfrak{G} = \int_{\tau_0}^{\tau_f}  \big[ \mu(\tau) \cdot \bar\xi(\tau) - H(t(\tau), g(\tau), \mu(\tau)) \frac{dt}{d\tau}\big]  d\tau,
+\end{align*}
+where
+\begin{align*}
+    \bar \xi = g^{-1} g'
+\end{align*}
+Now
+\begin{align*}
+    \mathfrak{G} = \int_{\tau_0}^{\tau_f}  \big[ \mu(\tau) \cdot \bar\xi(\tau) - \bar H( g,t,\mu,-E) \big]  d\tau,
+\end{align*}
+with
+\begin{align*}
+    \bar H = (H(t(\tau), g(\tau), \mu(\tau))- E) \frac{dt}{d\tau}
+\end{align*}
+
+\section{Bregman Lagrangian System on $\SO$}
+
+On a second thought, do we really need Hamiltonian system, given that we have VI for the time-varying Lagrangian system. 
+
+Bregman Lagrangian is
+\begin{align*}
+    L = e^{\alpha(t)+\gamma(t)} D_h(x+ e^{-\alpha(t)} v, x) - e^{\alpha+\beta+\gamma} f(x),
+\end{align*}
+where 
+\begin{align*}
+    \dot\beta \leq e^\alpha\\
+    \dot \gamma = e^\alpha.
+\end{align*}
+In particular, the following choice has been made. 
+For $p,C>0$,
+\begin{align*}
+    \alpha & = \log p - \log t\\
+    \beta & = p\log t + \log C\\
+    \gamma & = p \log t.
+\end{align*}
+Substituting these,
+\begin{align*}
+    L = p t^{p-1} D_h(x+ \frac{t}{p} v, x) - p C t^{2p-1} f(x).
+\end{align*}
+Further when $h(x)=\frac{1}{2}\|x\|^2$, 
+\begin{align*}
+    L = \frac{t^{p+1}}{2p} \| v\|^2 - p C t^{2p-1} f(x).
+\end{align*}
+
+
+\subsection{Continuous-Time EL}
+
+Consider
+\begin{align*}
+    L(t,R,\Omega) = \frac{t^{p+1}}{2p} \Omega\cdot J\Omega - cpt^{2p-1} f(R).
+\end{align*}
+
+It has been shown that the variational principle in the extended space results in the same EL equation as for autonomous systems, and it does not matter how the time is reparameterized. 
+We have
+\begin{align*}
+    \D_\Omega L = \frac{t^{p+1}}{p} J\Omega,\\
+    \T^*_e \L_R( \D_R L) = cpt^{2p-1} M.
+\end{align*}
+and
+\begin{align*}
+    \frac{d}{dt} \D_\Omega L = \frac{p+1}{p} t^p J\Omega + \frac{t^{p+1}}{p} J\dot\Omega.
+\end{align*}
+Thus, the EL equation is given by
+\begin{align*}
+    \frac{t^{p+1}}{p} J\dot\Omega + \frac{p+1}{p} t^p J\Omega + \frac{t^{p+1}}{p} \hat\Omega J\Omega - cpt^{2p-1} M = 0,
+\end{align*}
+or
+\begin{align*}
+    J\dot\Omega + \frac{p+1}{t} J\Omega + \hat\Omega J\Omega - c p^2 t^{p-2} M = 0.
+\end{align*}
+
+Let
+\begin{align*}
+\Pi = \frac{t^{p+1}}{p} J\Omega
+\end{align*}
+We have
+\begin{align*}
+    \dot \Pi + \Omega\times \Pi - cpt^{2p-1} M = 0.
+\end{align*}
+and
+\begin{align*}
+    \dot R = \frac{p}{t^{p+1}} R (J^{-1}\Pi)^\wedge
+\end{align*}
+
+
+Let 
+\begin{align*}
+    f(R) & = \frac{1}{2}\| A- R\|^2_F = \frac{1}{2} \tr{(A-R)^T(A-R)}  \\
+         & =\frac{1}{2}(\|A\|^2 + 3) - \tr{A^T R}.
+\end{align*}
+Thus,
+\begin{align*}
+    \D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta.
+\end{align*}
+This implies
+\begin{align*}
+    M = (R^T A-A^T R)^\vee.
+\end{align*}
+
+\subsection{LGVI}
+
+The discrete Lagrangian is chosen as
+\begin{align*}
+    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{t_{k}^{p+1}}{h_k p} \tr{(I-F_k)J_d}\\
+    &- \frac{h_k}{2}c p t_k^{2p-1} f(R_k) - \frac{h_k}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),
+\end{align*}
+where $h_k = t_{k+1}-t_k$.
+
+Let 
+\begin{align*}
+    M = -\T^*_I \L_R f(R).
+\end{align*}
+We have
+\begin{align*}
+    D_{R_k} L_{d_k} &= \frac{h_k}{2} cp (t_k^{2p-1} M_k + t_{k+1}^{2p-1} F_k M_{k+1})\\
+    D_{F_k} L_{d_k} &= \frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1} \\
+    \Ad^*_{F_k^T} & \T^*_e \L_{F_{k+1}} D_{F_k} L_{d_k}\\
+                    & = \frac{t^{p+1}_{k}}{h_k p} (F_k J_d - J_dF_k^T)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} F_k M_{k+1} \\
+\end{align*}
+Substituting these into DEL
+\begin{align*}
+\frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+- \frac{t^{p+1}_{k+1}}{h_{k+1} p} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee - \frac{h_{k+1}}{2} cpt^{2p-1}_{k+2} F_{k+1} M_{k+2}\\
++ \frac{h_{k+1}}{2} cp (t_{k+1}^{2p-1} M_{k+1} + t_{k+2}^{2p-1} F_{k+1} M_{k+2})
+\end{align*}
+This yields DEL
+\begin{gather}
+\frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee 
+-\frac{t^{p+1}_{k+1}}{h_{k+1} p} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee\nonumber \\
++ \frac{h_k+h_{k+1}}{2} cp t_{k+1}^{2p-1} M_{k+1}  =0.
+\end{gather}
+Dividing both sides by ...
+\begin{gather}
+    \frac{(t_k/t_{k+1})^{p+1}}{h_k } (J_dF_k -F_k^T J_d)^\vee 
+-\frac{1}{h_{k+1} } (F_{k+1} J_d - J_dF_{k+1}^T)^\vee\nonumber \\
++ \frac{h_k+h_{k+1}}{2} cp^2 t_{k+1}^{p-2} M_{k+1}  =0.
+\end{gather}
+
+Also, for $t_k$
+\begin{align*}
+    & D_{h_k} L_{d_k} = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d}\\
+    & - \frac{1}{2}c p t_k^{2p-1} f(R_k) - \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+\end{align*}
+Thus,
+\begin{align*}
+    & D_{t_k} L_{d_k} = 
+    \frac{(p+1)t_k^p}{p h_k} \tr{(I-F_k)J_d}  \\
+    & -\frac{h_k}{2}cp(2p-1) t_k^{2p-2} f(R_k)  - D_{h_k} L_{d_k} \\
+    & = \parenth{ \frac{(p+1)t_k^p}{p h_k} + \frac{t^{p+1}_{k}}{h_k^2 p} } \tr{(I-F_k)J_d} \\
+    & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
+        + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+    & = E^-_{d_k}\\
+    & D_{t_{k+1}} L_{d_k} = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} \\
+    & - \frac{1}{2}c p t_k^{2p-1} f(R_k)
+- \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})  \\
+    & = - E^+_{d_k}
+\end{align*}
+We have
+\begin{gather*}
+    D_{t_k} L_{d_k} + D_{t_k} L_{d_{k-1}} = 0\\
+    E^-_{d_k} = E^+_{d_{k-1}} \\
+\end{gather*}
+
+Perform discrete Legendre transform to obtain
+\begin{gather*}
+    \Pi_k =\frac{t_{k+1}^{p+1} }{h_k p} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+    \Pi_{k+1} = \frac{t_{k+1}^{p+1} }{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+= F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}
+\end{gather*}
+
+First consider, $\hat{\mathbb{F}}^+ L_d: (t_k,t_{k+1},R_k,F_k)\rightarrow(t_{k+1}, R_{k+1}, \Pi_{k+1}, E_{k+1})$
+\begin{align*}
+&    \Pi_{k+1}  = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1},\\
+& -E_{k+1} = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} \\
+& - \frac{1}{2}c p t_k^{2p-1} f(R_k)
+- \parenth{\frac{h_k}{2t_{k+1}}cp(2p-1)  + \frac{1}{2}c p}       t_{k+1}^{2p-1}  f(R_{k+1})  \\
+\end{align*}
+Also, $\hat{\mathbb{F}}^- L_d: (t_k,t_{k+1}, R_k, F_k)\rightarrow (t_k, R_k, \Pi_k, E_k)$ given by
+\begin{align*}
+    \Pi_k & =\frac{p}{h_k t_k^{p+1}} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+    E_k & = \parenth{ \frac{(p+1)t_k^p}{p h_k} + \frac{t^{p+1}_{k}}{h_k^2 p} } \tr{(I-F_k)J_d} \\
+    & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) 
+        + \frac{1}{2}c p} t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+\end{align*}
+The discrete Hamiltonian flow map is constructed by $\hat{\mathbb{F}}^+L_d \circ (\hat{\mathbb{F}}^-L_d)^{-1}$.
+
+\subsection{LGVI First Order}
+
+The discrete Lagrangian is chosen as
+\begin{align*}
+    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{t_{k}^{p+1}}{h_k p} \tr{(I-F_k)J_d}\\
+    &- h_k c p t_k^{2p-1} f(R_k).
+\end{align*}
+where $h_k = t_{k+1}-t_k$.
+
+Let 
+\begin{align*}
+    M = -\T^*_I \L_R f(R).
+\end{align*}
+We have test
+\begin{align*}
+    D_{R_k} L_{d_k} &= h_k cp t_k^{2p-1} M_k \\
+    D_{F_k} L_{d_k} &= \frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee \\
+    \Ad^*_{F_k^T} & \T^*_e \L_{F_{k+1}} D_{F_k} L_{d_k}\\
+                    & = \frac{t^{p+1}_{k}}{h_k p} (F_k J_d - J_dF_k^T)^\vee 
+\end{align*}
+Substituting these into DEL
+\begin{align*}
+\frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee \\
+- \frac{t^{p+1}_{k+1}}{h_{k+1} p} (F_{k+1} J_d - J_dF_{k+1}^T)^\vee \\
++ h_{k+1} cp t_{k+1}^{2p-1} M_{k+1} = 0.
+\end{align*}
+Also, for $t_k$
+\begin{align*}
+    D_{h_k} L_{d_k} =
+    -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} - c p t_k^{2p-1} f(R_k) 
+\end{align*}
+Thus,
+\begin{align*}
+    & D_{t_k} L_{d_k} = 
+    \frac{(p+1)t_k^p}{p h_k} \tr{(I-F_k)J_d}  \\
+    & -h_k cp(2p-1) t_k^{2p-2} f(R_k)  - D_{h_k} L_{d_k} \\
+    & = \parenth{ \frac{(p+1)t_k^p}{p h_k} + \frac{t^{p+1}_{k}}{h_k^2 p} } \tr{(I-F_k)J_d} \\
+    & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) + c p} t_k^{2p-1} f(R_k) \\
+    & = E^-_{d_k}\\
+\end{align*}
+Next,
+\begin{align*}
+    & D_{t_{k+1}} L_{d_k} = D_{h_k} L_{d_k} \\
+    & = -\frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} - c p t_k^{2p-1} f(R_k) 
+    & = - E^+_{d_k}
+\end{align*}
+We have
+\begin{gather*}
+    D_{t_k} L_{d_k} + D_{t_k} L_{d_{k-1}} = 0\\
+    E^-_{d_k} = E^+_{d_{k-1}} \\
+\end{gather*}
+
+Now Perform discrete Legendre transform.
+First consider, $\hat{\mathbb{F}}^+ L_d: (t_k,t_{k+1},R_k,F_k)\rightarrow(t_{k+1}, R_{k+1}, \Pi_{k+1}, E_{k+1})$
+\begin{align*}
+&    \Pi_{k+1}  = \frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee \\
+& = F_k^T \Pi_k + h_k cp t_k^{2p-1} F_k^T M_k ,\\
+&    E_{k+1} = \frac{t^{p+1}_{k}}{h_k^2 p} \tr{(I-F_k)J_d} + c p t_k^{2p-1} f(R_k) 
+\end{align*}
+Also, $\hat{\mathbb{F}}^- L_d: (t_k,t_{k+1}, R_k, F_k)\rightarrow (t_k, R_k, \Pi_k, E_k)$ given by
+\begin{align*}
+    \Pi_k & =\frac{t_k^{p+1}}{h_k p} (F_k J_d - J_dF_k^T)^\vee  - h_k cp t_k^{2p-1} M_k \\
+    E_k & = \parenth{ \frac{(p+1)t_k^p}{p h_k} + \frac{t^{p+1}_{k}}{h_k^2 p} } \tr{(I-F_k)J_d} \\
+    & + \parenth{- \frac{h_k}{2 t_k}cp(2p-1) + c p} t_k^{2p-1} f(R_k) \\
+\end{align*}
+The discrete Hamiltonian flow map is constructed by $\hat{\mathbb{F}}^+L_d \circ (\hat{\mathbb{F}}^-L_d)^{-1}$.
+
+However, the first order didn't work properly with either fixed point iteration or nonlinear solver. 
+
+\subsection{LGVI Second Order Integrator}
+
+
+The discrete Lagrangian is chosen as
+\begin{align*}
+    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{t_{k,k+1}^{p+1}}{h_k p} \tr{(I-F_k)J_d}\\
+    &- \frac{h_k}{2}c p t_k^{2p-1} f(R_k) - \frac{h_k}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),
+\end{align*}
+where $h_k = t_{k+1}-t_k$ and $t_{k,k+1}=(t_k + t_{k+1})/2$.
+
+Let 
+\begin{align*}
+    M = -\T^*_I \L_R f(R).
+\end{align*}
+We have
+\begin{align*}
+    D_{R_k} L_{d_k} &= \frac{h_k}{2} cp (t_{k,k+1}^{2p-1} M_k + t_{k+1}^{2p-1} F_k M_{k+1})\\
+    D_{F_k} L_{d_k} &= \frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1} \\
+    \Ad^*_{F_k^T} & \T^*_e \L_{F_{k+1}} D_{F_k} L_{d_k}\\
+                    & = \frac{t^{p+1}_{k,k+1}}{h_k p} (F_k J_d - J_dF_k^T)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} F_k M_{k+1} \\
+\end{align*}
+
+Also, for $t_k$
+\begin{align*}
+    & D_{h_k} L_{d_k} = -\frac{t^{p+1}_{k,k+1}}{h_k^2 p} \tr{(I-F_k)J_d}\\
+    & - \frac{1}{2}c p t_k^{2p-1} f(R_k) - \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+    & D_{t_{k,k+1}} L_{d_k} = \frac{(p+1)t_{k,k+1}^p}{h_k p} \tr{(I-F_k)J_d}  
+\end{align*}
+Thus,
+\begin{align*}
+    & D_{t_k} L_{d_k} = \frac{1}{2} D_{t_{k,k+1}} L_{d_k} - D_{h_k} L_{d_k} \\
+    & -\frac{h_k}{2} c p (2p-1) t_k^{2p-2} f(R_k) \\
+    & = E^-_{d_k}.
+\end{align*}
+Next,
+\begin{align*}
+    & D_{t_{k+1}} L_{d_k} = \frac{1}{2} D_{t_{k,k+1}} L_{d_k} + D_{h_k} L_{d_k} \\
+    & -\frac{h_k}{2} c p (2p-1) t_{k+1}^{2p-2} f(R_{k+1}) \\
+    & = - E^+_{d_k}.
+\end{align*}
+We have
+\begin{gather*}
+    D_{t_k} L_{d_k} + D_{t_k} L_{d_{k-1}} = 0\\
+    E^-_{d_k} = E^+_{d_{k-1}} \\
+\end{gather*}
+
+Perform discrete Legendre transform to obtain
+\begin{gather*}
+    \Pi_k =\frac{t_{k,k+1}^{p+1} }{h_k p} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+    \Pi_{k+1} = \frac{t_{k,k+1}^{p+1} }{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
+= F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}
+\end{gather*}
+
+First consider, $\hat{\mathbb{F}}^+ L_d: (t_k,t_{k+1},R_k,F_k)\rightarrow(t_{k+1}, R_{k+1}, \Pi_{k+1}, E_{k+1})$
+\begin{align*}
+&    \Pi_{k+1}  = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1},\\
+& E_{k+1} = - \frac{(p+1)t_{k,k+1}^p}{2 h_k p} \tr{(I-F_k)J_d}  \\
+&     +\frac{t^{p+1}_{k,k+1}}{h_k^2 p} \tr{(I-F_k)J_d}\\
+    & + \frac{1}{2}c p t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+    & +\frac{h_k}{2} c p (2p-1) t_{k+1}^{2p-2} f(R_{k+1}) \\
+\end{align*}
+Also, $\hat{\mathbb{F}}^- L_d: (t_k,t_{k+1}, R_k, F_k)\rightarrow (t_k, R_k, \Pi_k, E_k)$ given by
+\begin{align*}
+    \Pi_k & =\frac{t_{k,k+1}^{p+1}}{h_k p} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
+    E_k & = \frac{(p+1)t_{k,k+1}^p}{ 2 h_k p} \tr{(I-F_k)J_d}  \\
+    & +\frac{t^{p+1}_{k,k+1}}{h_k^2 p} \tr{(I-F_k)J_d}\\
+    & + \frac{1}{2}c p t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
+    & -\frac{h_k}{2} c p (2p-1) t_k^{2p-2} f(R_k) \\
+\end{align*}
+The discrete Hamiltonian flow map is constructed by $\hat{\mathbb{F}}^+L_d \circ (\hat{\mathbb{F}}^-L_d)^{-1}$.
+
+
+\bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}
+\bibliographystyle{IEEEtran}
+
+\end{document}
+
+\begin{align*}
+    H(R_k, P_{k+1}) = P_{k+1} \cdot R_k   - \frac{1}{h} \tr{ (I-F_k) J_d},
+\end{align*}
+where $F_k$ is the solution of \eqref{eqn:Pkp} for given $(R_k,F_k)$, which is rewritten as
+
+The type II discrete Hamiltonian is
+\begin{align*}
+    H(R_k, P_{k+1}) = P_{k+1} \cdot R_k   - \frac{1}{h} \tr{ (I-F_k) J_d},
+\end{align*}
+where $F_k$ is the solution of \eqref{eqn:Pkp} for given $(R_k,F_k)$, which is rewritten as
+\begin{align*}
+    R_k^T P_{k+1} = \frac{1}{h}(F_k J_d F_k - J_d).
+\end{align*}
+Therefore, the Hamiltonian is rewritten in terms of $F_k$ into
+\begin{align*}
+    H(F_k(R_k, P_{k+1})) & = \frac{1}{h} \tr{(R_k^T P_{k+1})^T F_k} - \frac{1}{h}\tr{(I-F_k)J_d}\\
+                         & = -\frac{1}{h} \tr{(I-F_k) J_d}.
+\end{align*}
+The variational of the discrete Hamiltonian is
+\begin{align*}
+    \delta H = \frac{1}{h}\tr{\delta F_k J_d}.
+\end{align*}
+We have to rewrite $\delta H$ in terms of $\delta R_k$ and $\delta P_{k+1}$.
+
+The variation of \eqref{eqn:Pkp} is
+\begin{align*}
+    \delta  (R_{k+1}^TP_{k+1})  & = \frac{1}{h} (J_d F_k\hat \chi_k + \hat\chi_k F_k^T J_d) \\
+                                & = \frac{1}{h} ((\tr{F^T J_d} I - F^T J_d) \chi_k)^\wedge.
+\end{align*}
+On the other hand, 
+\begin{align*}
+    \delta  (R_{k+1}^TP_{k+1}) & = \delta (F_k^T R_k^T P_{k+1}) \\
+                               & = -\hat\chi_k R_{k+1}^T P_{k+1} - F_k^T \hat \eta_k R_k^T P_{k+1} + R_{k+1}^T \delta P_{k+1}
+\end{align*}
+
+

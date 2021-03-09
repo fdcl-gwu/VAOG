@@ -7,7 +7,7 @@ A=rand(3,3);%diag([5, 3, 1])*expm(pi*hat([1 1 1])/sqrt(3));
 R_opt = U*V';
 J_opt = obj(R_opt);
 
-p=3;
+p=3.5;
 C=1;
 J=eye(3);
 

@@ -2,11 +2,11 @@
 \IEEEoverridecommandlockouts \overrideIEEEmargins
 \usepackage{amsmath,amssymb,url}
 \usepackage{graphicx}%,subfigure}
-%\usepackage[all,import]{xy}
 \usepackage{color}
 \usepackage{siunitx}
 %\usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
+\usepackage{tikz}
 
 \newcommand{\norm}[1]{\ensuremath{\left\| #1 \right\|}}
 \newcommand{\abs}[1]{\ensuremath{\left| #1 \right|}}
@@ -14,8 +14,6 @@
 \newcommand{\braces}[1]{\ensuremath{\left\{ #1 \right\}}}
 \newcommand{\parenth}[1]{\ensuremath{\left( #1 \right)}}
 \newcommand{\ip}[1]{\ensuremath{\langle #1 \rangle}}
-\newcommand{\refeqn}[1]{(\ref{eqn:#1})}
-\newcommand{\reffig}[1]{Fig. \ref{fig:#1}}
 \newcommand{\tr}[1]{\mbox{tr}\ensuremath{\negthickspace\bracket{#1}}}
 \newcommand{\deriv}[2]{\ensuremath{\frac{\partial #1}{\partial #2}}}
 \newcommand{\G}{\ensuremath{\mathsf{G}}}
@@ -36,6 +34,11 @@
 \newcommand{\ad}{\ensuremath{\mathrm{ad}}}
 \newcommand{\g}{\ensuremath{\mathfrak{g}}}
 \DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand\encircle[1]{%
+  \tikz[baseline=(X.base)] 
+    \node (X) [draw, shape=circle, inner sep=0] {#1};}
+
 
 \title{\LARGE \bf Variational Accelerated Optimization on a Lie Group}
 
@@ -61,7 +64,7 @@
 
 \graphicspath{{./Figs/}}
 
-%\color{white}\pagecolor{black}
+\color{white}\pagecolor{black}
 
 \begin{document}
 \allowdisplaybreaks
@@ -260,10 +263,10 @@ The additional term $\lambda$ has been introduced in~\cite{alimisis2020continuou
 
 Let the left-trivialized derivative of the objective function be
 \begin{align}
-    \nabla_\L f(g) = \T_e^*\L_g (\D_g \obj(g)).\label{eqn:grad}
+    \nabla_\L \obj(g) = \T_e^*\L_g (\D_g \obj(g)).\label{eqn:grad}
 \end{align}
 According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follows.
-\begin{prop}
+\begin{prop}\label{prop:EL_Breg}
     The Euler-Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are given by
     \begin{align}
         \frac{d \mathbf{J}(\xi)}{dt} + \frac{\lambda p+1}{t}\mathbf{J}(\xi) - \ad^*_\xi \mathbf{J}(\xi)
@@ -274,7 +277,7 @@ According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follow
     \begin{align}
         \obj(g(t)) - \obj(g^*) \in \mathcal{O}(t^{-p}),
     \end{align}
-    when $f$ is geodesically convex. 
+    when $\obj$ is geodesically convex. 
 \end{prop}
 \begin{proof}
     We have
@@ -295,24 +298,24 @@ According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follow
 Let $h_k = t_{k+1}- t_k$ and $t_{k,k+1} = t_k + h_k/2$.  
 We consider the following form of the discrete Lagrangian
 \begin{align}
-    L_d(t_k, t_{k+1}, g_k, f_k ) & = \frac{\phi(t_{k,k+1}) }{2 h_k} T(f_k) -\frac{h_k}{2} \theta(t_k) \obj (g_k)\nonumber \\
+    L_d(t_k, t_{k+1}, g_k, f_k ) & = \frac{\phi(t_{k,k+1}) }{h_k} T_d(f_k) -\frac{h_k}{2} \theta(t_k) \obj (g_k)\nonumber \\
                                  & \quad -\frac{h_k}{2} \theta(t_{k+1}) \obj (g_kf_k), \label{eqn:Ld}
 \end{align}
-where $T_d(f_k):\G\rightarrow\Re$ is chosen to approximate $T(f_k) =h_k^2 \|\xi_k \|^2/$, and
+where $T_d(f_k):\G\rightarrow\Re$ is chosen such that it approximate $T(f_k) \approx h_k^2 \|\xi_k \|^2/2$, and
 \begin{align}
     \phi(t) & = \frac{t^{\lambda p +1}}{p},\\
     \theta(t) & = C p t^{(\lambda+1)p-1}.
 \end{align}
 The corresponding variational integrators are presented as follows. 
-\begin{prop}
+\begin{prop}\label{prop:DEL_Breg}
     The discrete-time Euler-Lagrange equation, or the Lie group variational integrator corresponding to \eqref{eqn:Ld} are given by
 \begin{align}
-    \mu_k & =  \frac{\phi_{k,k+1}}{h_k}\Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} T_{d_k})) + \frac{h_k\theta_k}{2} \nabla_L \obj_k, \\
-    \mu_{k+1} & = \Ad^*_{f_k}( \mu_k - \frac{h_k\theta_k}{2} \nabla_L\obj_k ) -\frac{h_k\theta_{k+1}}{2} \nabla_\L \obj_{k+1}\\
-    E_{k} & = \frac{\phi'_{k,k+1}}{ 4 h_k} T_{d_k} -\frac{h_k\theta'_{k}}{2} \obj_{k} \nonumber\\\
-          & \quad + \frac{\phi_{k,k+1}}{2h_k^2}T_{d_k} -\frac{\theta_k}{2}\obj_k - \frac{\theta_{k+1}}{2}\obj_{k+1},\\
-    E_{k+1} & = -\frac{\phi'_{k,k+1}}{ 4 h_k} T_{d_k} +\frac{h_k\theta'_{k+1}}{2} \obj_{k+1}\nonumber \\\
-            & \quad + \frac{\phi_{k,k+1}}{2h_k^2}T_{d_k} -\frac{\theta_k}{2}\obj_k - \frac{\theta_{k+1}}{2}\obj_{k+1},
+    \mu_k & =  \frac{\phi_{k,k+1}}{h_k}\Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} T_{d_k})) + \frac{h_k\theta_k}{2} \nabla_L \obj_k, \label{eqn:muk_Breg}\\
+    \mu_{k+1} & = \Ad^*_{f_k}( \mu_k - \frac{h_k\theta_k}{2} \nabla_L\obj_k ) -\frac{h_k\theta_{k+1}}{2} \nabla_\L \obj_{k+1}, \label{eqn:mukp_Breg}\\
+    E_{k} & = \frac{\phi'_{k,k+1}}{ 2 h_k} T_{d_k} -\frac{h_k\theta'_{k}}{2} \obj_{k} \nonumber\\\
+          & \quad + \frac{\phi_{k,k+1}}{h_k^2}T_{d_k} + \frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1}, \label{eqn:Ek_Breg}\\
+    E_{k+1} & = -\frac{\phi'_{k,k+1}}{ 2 h_k} T_{d_k} +\frac{h_k\theta'_{k+1}}{2} \obj_{k+1}\nonumber \\\
+            & \quad + \frac{\phi_{k,k+1}}{h_k^2}T_{d_k} +\frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1}, \label{eqn:Ekp_Breg}
 \end{align}
 together with \eqref{eqn:gkp}, where
 \begin{align*}
@@ -325,50 +328,141 @@ together with \eqref{eqn:gkp}, where
 \end{proof}
 As discussed at the end of Section III, these provide symplectic and momentum preserving discrete time flow.
 Since these corresponds to a discretization of the Bregman Lagrangian system, they can be utilized for optimization on any Lie group $\G$. 
+Assuming that $T_d(f_k)=T_d(f_k^{-1})$, the discrete Lagrangian is self-adjoint, and therefore, the above integrator is of the second-order.
 
-\section{Applications}
+\section{Optimization Algorithms on $\G$}
 
-\subsection{Continuous-Time EL}
+\subsection{Euclidean Space $\Re^n$}
+
+Suppose $\G=\Re^n$. 
+The group action corresponds to the addition, and the inner product is chosen as $\pair{x,y}=x^Ty$ for any $x,y\in\Re^n$.
+Let $\mathbf{J}(\dot x) = I_{n\times n} \dot x$, and $\lambda =1$. 
+
+From \eqref{eqn:EL_Breg}, the continuous Euler-Lagrange equation is given by
+\begin{align}
+    \ddot x + \frac{p+1}{t} \dot x + Cp^2 t^{p-2} \nabla \obj(x) = 0,\label{eqn:EL_Re}
+\end{align}
+which recovers \cite{wibisono2016variational}.
+
+Next, we develop variational integrators. 
+The discrete kinematics equation \eqref{eqn:gkp} is rewritten as $x_{k+1} = x_k + \Delta x_k$ for $\Delta x_k\in\Re^n$.
+The kinetic energy term in \eqref{eqn:Ld} is chosen as
+\begin{align*}
+    T_d =\frac{1}{2}\|\Delta x_k\|^2.
+\end{align*}
+According to \Cref{prop:DEL_Breg}, we obtain the discrete Euler-Lagrange equations as follows.
+
+\begin{prop}
+    When $G=\Re^n$, the variational integrator for the discrete Bregman Lagrangian \eqref{eqn:Ld} is given by 
+\begin{align}
+    v_k & =  \frac{\phi_{k,k+1}}{h_k}\Delta x_k + \frac{h_k\theta_k}{2} \nabla \obj_k,\label{eqn:muk_Re} \\
+    v_{k+1} & = v_k - \frac{h_k\theta_k}{2} \nabla\obj_k  -\frac{h_k\theta_{k+1}}{2} \nabla \obj_{k+1},  \label{eqn:mukp_Re}\\
+    E_{k} & = \frac{\phi'_{k,k+1}}{ 4 h_k} \|\Delta x_k\|^2 -\frac{h_k\theta'_{k}}{2} \obj_{k} \nonumber\\\
+          & \quad + \frac{\phi_{k,k+1}}{2 h_k^2}\|\Delta x_k\|^2 + \frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1},\label{eqn:Ek_Re}\\
+    E_{k+1} & = -\frac{\phi'_{k,k+1}}{ 4 h_k} \|\Delta x_k\|^2 +\frac{h_k\theta'_{k+1}}{2} \obj_{k+1}\nonumber \\\
+            & \quad + \frac{\phi_{k,k+1}}{2 h_k^2}\|\Delta x_k\|^2 +\frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1}.
+\end{align}
+\end{prop}
+These are implicit as \eqref{eqn:muk_Re} and \eqref{eqn:Ek_Re} should be solved together for $\Delta x_k$ and $h_k$.
+One straightforward approach is fixed-point iteration.
+For a given $h_k$, \eqref{eqn:muk_Re} can be solved explicitly for $\Delta_k$, which yields $x_{k+1}$. 
+Then, \eqref{eqn:Ek_Re} is converted into a third-order polynomial for $h_k$, from which its positive real solution is taken as an updated $h_k$. 
+These procedure are repeated until $h_k$ converges. 
+
+\subsection{Three-Dimensional Special Orthogonal Group $\SO$}
+
+Next, consider $\SO=\{R\in\Re^{3\times 3}\,|\, R^T R = I_{3\times 3},\, \mathrm{det}(R)]=1\}$.
+Its lie algebra is $\so=\{S\in\Re^{3\times 3}\,|\, S^T=-S\}$ with the matrix commutator. 
+This is identified with $\Re^3$ through the \textit{hat} map $\hat\cdot :\Re^3\rightarrow\so$ defined such that $\hat x\in\so$ and $\hat x y = x\times y$ for any $x,y\in\Re^3$.
+The inverse of the hat map is denoted by the \textit{vee} map $\vee: \so\rightarrow\Re^3$.
+The inner product is given by
+\begin{align*}
+    \langle \hat \eta, \hat \xi \rangle_{\so} = \frac{1}{2}\tr{\hat \eta^T\hat \xi} = \eta^T\xi = \pair{\eta,\xi}_{\Re^3}.
+\end{align*}
+The metric is chosen as
+\begin{align}
+    \langle \mathbf{J}(\hat \eta), \hat \xi \rangle_{\so} = \tr{\hat \eta^T J_d \hat \xi} = \eta^TJ \xi = \pair{J\eta,\xi}_{\Re^3},\label{eqn:met_SO3}
+\end{align}
+where $J\in\Re^{3\times 3}$ is symmetric and positive-definite, and $J_d=\frac{1}{2}\tr{J}I_{3\times 3}-J$.
+Further, 
+\begin{align*}
+    \ad_\eta\xi = \eta\times \xi, \quad \ad^*_\eta \xi = \xi\times \eta,\\
+    \Ad_F\eta = F\eta, \quad \Ad^*_F \eta = F^T\eta.
+\end{align*}
 
 Consider
 \begin{align*}
-    L(t,R,\Omega) = \frac{t^{p+1}}{2p} \Omega\cdot J\Omega - cpt^{2p-1} f(R).
+    L(t,R,\Omega) = \frac{t^{p+1}}{2p} \Omega\cdot J\Omega - Cpt^{2p-1} \obj(R).
 \end{align*}
+From \eqref{eqn:EL_Breg}, the Euler-Lagrange equations are given by
+\begin{gather}
+    J\dot\Omega + \frac{p+1}{t} J\Omega + \hat\Omega J\Omega + C p^2 t^{p-2} \nabla_\L \obj(R) = 0,\label{eqn:EL_SO3}\\
+    \dot R = R\hat\Omega.
+\end{gather}
 
-It has been shown that the variational principle in the extended space results in the same EL equation as for autonomous systems, and it does not matter how the time is reparameterized. 
-We have
+Next, we derive variational integrators. 
+The kinematics equation is written as
+\begin{align}
+    R_{k+1} = R_k F_k,
+\end{align}
+for $F_k\in\SO$.
+Similar with~\cite{LeeLeoCMAME07}, the angular velocity is approximated with
 \begin{align*}
-    \D_\Omega L = \frac{t^{p+1}}{p} J\Omega,\\
-    \T^*_e \L_R( \D_R L) = cpt^{2p-1} M.
+    \hat\Omega_k \approx \frac{1}{h_k} R_k^T (R_{k+1}-R_k) = \frac{1}{h_k} (F_k-I_{3\times 3}).
 \end{align*}
-and
-\begin{align*}
-    \frac{d}{dt} \D_\Omega L = \frac{p+1}{p} t^p J\Omega + \frac{t^{p+1}}{p} J\dot\Omega.
-\end{align*}
-Thus, the EL equation is given by
-\begin{align*}
-    \frac{t^{p+1}}{p} J\dot\Omega + \frac{p+1}{p} t^p J\Omega + \frac{t^{p+1}}{p} \hat\Omega J\Omega - cpt^{2p-1} M = 0,
-\end{align*}
-or
-\begin{align*}
-    J\dot\Omega + \frac{p+1}{t} J\Omega + \hat\Omega J\Omega - c p^2 t^{p-2} M = 0.
-\end{align*}
+Substituting this into \eqref{eqn:met_SO3},
+\begin{align}
+    T_d(F_k) & = \frac{1}{2}\tr{(F_k-I_{3\times 3})^T J_d(F_k-I_{3\times 3})}\nonumber \\
+             & =\tr{(I_{3\times 3}-F_k)J_d}, \label{eqn:Td_SO3}
+\end{align}
+which satisfies $T_d(F_k)=T_d(F_k^T)$.
 
-Let
-\begin{align*}
-\Pi = \frac{t^{p+1}}{p} J\Omega
-\end{align*}
-We have
-\begin{align*}
-    \dot \Pi + \Omega\times \Pi - cpt^{2p-1} M = 0.
-\end{align*}
-and
-\begin{align*}
-    \dot R = \frac{p}{t^{p+1}} R (J^{-1}\Pi)^\wedge
-\end{align*}
+\begin{prop}
+    When $\G=\SO$, the Lie group variational integrator for the discrete Bregman Lagrangian \eqref{eqn:Ld} with \eqref{eqn:Td_SO3} is given by
+\begin{align}
+    \mu_k & =\frac{\phi_{k,k+1}}{h_k } (F_k J_d - J_dF_k^T)^\vee + \frac{h_k\theta_k }{2} \nabla_\L \obj_k, \label{eqn:muk_SO3} \\
+    \mu_{k+1}  & = F_k^T \mu_k -\frac{h_k\theta_k}{2}\nabla_\L \obj_k - \frac{h_k\theta_k}{2} \nabla_\L \obj_{k+1}, \label{eqn:mukp_SO3}\\
+    E_{k} & = \frac{\phi'_{k,k+1}}{ 2 h_k} \tr{(I-F_k)J_d} -\frac{h_k\theta'_{k}}{2} \obj_{k} \nonumber\\\
+          & \quad + \frac{\phi_{k,k+1}}{h_k^2} \tr{(I-F_k)J_d} + \frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1}, \label{eqn:Ek_SO3}\\
+    E_{k+1} & = -\frac{\phi'_{k,k+1}}{ 2 h_k} \tr{(I-F_k)J_d} +\frac{h_k\theta'_{k+1}}{2} \obj_{k+1}\nonumber \\\
+            & \quad + \frac{\phi_{k,k+1}}{h_k^2} \tr{(I-F_k)J_d} +\frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1}, \label{eqn:Ekp_SO3}
+\end{align}
+\end{prop}
+\begin{proof}
+    Let $\delta F_k = F_k \hat\chi_k$.
+    The derivative of \eqref{eqn:Td_SO3} is given by
+    \begin{align*}
+        \D_{F_k} T_{d_k} \cdot \delta F_k = \tr{-F_k\hat\chi_k J_d} = (J_dF_k - F_k^T J_d)^\vee \cdot \chi,
+    \end{align*}
+    where the last equality is from the identity, $\tr{-\hat x A} = x\cdot (A-A^T)^\vee$ for any $x\in\Re^3$ and $A\in\Re^{3\times 3}$.
+    Thus, $\T^*_I \L_{F_k} (\D_{F_k} T_{d_k}) = (J_dF_k - F_k^T J_d)^\vee $. 
+    Substituting this into \eqref{eqn:muk_Breg} and \eqref{eqn:mukp_Breg} yields \eqref{eqn:muk_SO3} and \eqref{eqn:mukp_SO3}, respectively. 
+    The remaining \eqref{eqn:Ek_SO3} and \eqref{eqn:Ekp_SO3} are directly from \eqref{eqn:Ek_Breg} and \eqref{eqn:Ekp_Breg} with \eqref{eqn:Td_SO3}.
+\end{proof}
+To implement these, \eqref{eqn:mukp_SO3} and \eqref{eqn:Ek_SO3} should be solved together for $h_k$ and $F_k$.
+For a given $h_k$, computational approaches to solve \eqref{eqn:muk_SO3} for $F_k$ are presented in~\cite[Sec 3.3.8]{Lee08}.
+When $J=I_{3\times 3}$, or equivalently when $J_d = \frac{1}{2}I_{3\times 3}$, \eqref{eqn:muk_SO3} can be solved explicitly to obtain
+\begin{align}
+    F_k = \exp (\frac{\sin^{-1}\|a\|}{\|a\|}\hat a),
+\end{align}
+where $a = \frac{h_k}{\phi_{k,k+1}} (\mu_k - \frac{h_k\theta_k}{2}\nabla_\L \obj_k)\in\Re^3$.
 
+\subsection{Product of $\Re^n$ and $\SO$}
 
-Let 
+Suppose $\G=\SO\times \Re^n$.
+As it is the direct product of $\SO$ and $\Re^n$, the variation of the action sum is decomposed into two parts of $\SO$ and $\Re^n$. 
+Therefore, the continuous Euler-Lagrange equations on $\SO\times\Re^n$ is composed of \eqref{eqn:EL_Re} and \eqref{eqn:EL_SO3}, after replacing $\nabla \obj(x)$ of \eqref{eqn:EL_Re} with $\nabla_x \obj(R,x)$, and replacing $\nabla_\L f(R)$ of \eqref{eqn:EL_SO3} with $\T^*_I\L_R(\D_R\obj(R,x))$.
+
+Similarly, the corresponding Lie group variational integrators are given by \eqref{eqn:muk_Re}, \eqref{eqn:mukp_Re}, \eqref{eqn:muk_SO3}, and \eqref{eqn:mukp_SO3}, together with the energy equations \eqref{eqn:Ek_Breg} and \eqref{eqn:Ekp_Breg} with
+\begin{align*}
+    T_{d_k}(F_k,\Delta x_k) = \frac{1}{2}\|\Delta x_k\|^2 + \tr{(I_{3\times 3}-F_k)J_d}.
+\end{align*}
+For the case of $n=3$, these can be utilized for optimization on $\SE$ as well, although Bregman Lagrangign systems are readily developed on $\SE$.
+
+\section{Numerical Examples}
+
+\subsection{Three-Dimensional Special Orthogonal Group $\SO$}
+
 \begin{align*}
     f(R) & = \frac{1}{2}\| A- R\|^2_F = \frac{1}{2} \tr{(A-R)^T(A-R)}  \\
          & =\frac{1}{2}(\|A\|^2 + 3) - \tr{A^T R}.
@@ -381,77 +475,6 @@ This implies
 \begin{align*}
     M = (R^T A-A^T R)^\vee.
 \end{align*}
-
-\subsection{LGVI Second Order Integrator}
-
-
-The discrete Lagrangian is chosen as
-\begin{align*}
-    & L_d(t_k, t_{k+1}, R_k, F_k) = \frac{t_{k,k+1}^{p+1}}{h_k p} \tr{(I-F_k)J_d}\\
-    &- \frac{h_k}{2}c p t_k^{2p-1} f(R_k) - \frac{h_k}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),
-\end{align*}
-where $h_k = t_{k+1}-t_k$ and $t_{k,k+1}=(t_k + t_{k+1})/2$.
-
-Let 
-\begin{align*}
-    M = -\T^*_I \L_R f(R).
-\end{align*}
-We have
-\begin{align*}
-    D_{R_k} L_{d_k} &= \frac{h_k}{2} cp (t_{k,k+1}^{2p-1} M_k + t_{k+1}^{2p-1} F_k M_{k+1})\\
-    D_{F_k} L_{d_k} &= \frac{t^{p+1}_{k}}{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1} \\
-    \Ad^*_{F_k^T} & \T^*_e \L_{F_{k+1}} D_{F_k} L_{d_k}\\
-                    & = \frac{t^{p+1}_{k,k+1}}{h_k p} (F_k J_d - J_dF_k^T)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} F_k M_{k+1} \\
-\end{align*}
-
-Also, for $t_k$
-\begin{align*}
-    & D_{h_k} L_{d_k} = -\frac{t^{p+1}_{k,k+1}}{h_k^2 p} \tr{(I-F_k)J_d}\\
-    & - \frac{1}{2}c p t_k^{2p-1} f(R_k) - \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
-    & D_{t_{k,k+1}} L_{d_k} = \frac{(p+1)t_{k,k+1}^p}{h_k p} \tr{(I-F_k)J_d}  
-\end{align*}
-Thus,
-\begin{align*}
-    & D_{t_k} L_{d_k} = \frac{1}{2} D_{t_{k,k+1}} L_{d_k} - D_{h_k} L_{d_k} \\
-    & -\frac{h_k}{2} c p (2p-1) t_k^{2p-2} f(R_k) \\
-    & = E^-_{d_k}.
-\end{align*}
-Next,
-\begin{align*}
-    & D_{t_{k+1}} L_{d_k} = \frac{1}{2} D_{t_{k,k+1}} L_{d_k} + D_{h_k} L_{d_k} \\
-    & -\frac{h_k}{2} c p (2p-1) t_{k+1}^{2p-2} f(R_{k+1}) \\
-    & = - E^+_{d_k}.
-\end{align*}
-We have
-\begin{gather*}
-    D_{t_k} L_{d_k} + D_{t_k} L_{d_{k-1}} = 0\\
-    E^-_{d_k} = E^+_{d_{k-1}} \\
-\end{gather*}
-
-Perform discrete Legendre transform to obtain
-\begin{gather*}
-    \Pi_k =\frac{t_{k,k+1}^{p+1} }{h_k p} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
-    \Pi_{k+1} = \frac{t_{k,k+1}^{p+1} }{h_k p} (J_dF_k -F_k^T J_d)^\vee + \frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}\\
-= F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1}
-\end{gather*}
-
-First consider, $\hat{\mathbb{F}}^+ L_d: (t_k,t_{k+1},R_k,F_k)\rightarrow(t_{k+1}, R_{k+1}, \Pi_{k+1}, E_{k+1})$
-\begin{align*}
-&    \Pi_{k+1}  = F_k^T \Pi_k + \frac{h_k}{2} cp t_k^{2p-1} F_k^T M_k +\frac{h_k}{2} cpt^{2p-1}_{k+1} M_{k+1},\\
-& E_{k+1} = - \frac{(p+1)t_{k,k+1}^p}{2 h_k p} \tr{(I-F_k)J_d}  \\
-&     +\frac{t^{p+1}_{k,k+1}}{h_k^2 p} \tr{(I-F_k)J_d}\\
-    & + \frac{1}{2}c p t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
-    & +\frac{h_k}{2} c p (2p-1) t_{k+1}^{2p-2} f(R_{k+1}) \\
-\end{align*}
-Also, $\hat{\mathbb{F}}^- L_d: (t_k,t_{k+1}, R_k, F_k)\rightarrow (t_k, R_k, \Pi_k, E_k)$ given by
-\begin{align*}
-    \Pi_k & =\frac{t_{k,k+1}^{p+1}}{h_k p} (F_k J_d - J_dF_k^T)^\vee  -\frac{h_k}{2} cp t_k^{2p-1} M_k \\
-    E_k & = \frac{(p+1)t_{k,k+1}^p}{ 2 h_k p} \tr{(I-F_k)J_d}  \\
-    & +\frac{t^{p+1}_{k,k+1}}{h_k^2 p} \tr{(I-F_k)J_d}\\
-    & + \frac{1}{2}c p t_k^{2p-1} f(R_k) + \frac{1}{2}c p t_{k+1}^{2p-1} f(R_{k+1}),\\
-    & -\frac{h_k}{2} c p (2p-1) t_k^{2p-2} f(R_k) \\
-\end{align*}
-The discrete Hamiltonian flow map is constructed by $\hat{\mathbb{F}}^+L_d \circ (\hat{\mathbb{F}}^-L_d)^{-1}$.
 
 
 \bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}

@@ -120,9 +120,14 @@ As discussed in~\cite[Sec. 4.2.2]{MarWesAN01}, the resulting Euler-Lagrangian eq
 Further, the resulting Euler-Lagrangian equation share the exactly same form as (unextended) Lagrangian mechanics for the associated curve. 
 As such, the Euler-Lagrange equation for non-autonomous Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ can be written as
 \begin{align}
-    \frac{d}{dt}\!\parenth{\deriv{L}{\xi}} - \ad^*_\xi \deriv{L}{\xi} - \T^*_e \L_g (\D_g L) = 0,
+    \frac{d}{dt}\!\parenth{\deriv{L}{\xi}} - \ad^*_\xi \deriv{L}{\xi} - \T^*_e \L_g (\D_g L) = 0, \label{eqn:EL}
 \end{align}
 where $\D_g$ stands for the differential with respect to $g$ (see~\cite[Sec. 8.6.3]{LeeLeo17} for derivation of the above equation for autonomous Lagrangian).
+
+Introducing the Legendre transform $\mu = \deriv{L}{\xi} \in\g^*$, and assuming that it is invertible, the Euler-Lagrange equation can be rewritten into
+\begin{align}
+    \dot \mu - \ad^*_{\xi} \mu - \T^*_e \L_g (\D_g L) = 0. \label{eqn:HE}
+\end{align}
 
 \subsection{Extended Lie Group Variational Integrator}
 
@@ -193,8 +198,8 @@ Whereas the action $\mathfrak{G}$ in the continuous time formulation is a functi
 The evolution of the discrete time is associated with the energy.
 Let the discrete energies be
 \begin{align}
-    E^+_k &= - D_{t_{k+1}} L_{d_k}\label{eqn:Ep}\\
-    E^-_k &= D_{t_{k}} L_{d_k}.\label{eqn:Em}
+    E^+_k &= - \D_{t_{k+1}} L_{d_k}\label{eqn:Ep}\\
+    E^-_k &= \D_{t_{k}} L_{d_k}.\label{eqn:Em}
 \end{align}
 Then, \eqref{eqn:DELt} can be rewritten as
 \begin{align}
@@ -213,7 +218,7 @@ To implement \eqref{eqn:DEL} and \eqref{eqn:DELt}, it is more convenient to intr
 \end{align}
 where
 \begin{align}
-    \mu_{k+1} & = \T^*_e\L_{f_k} \D_{f_k} L_{d_k},\label{eqn:mukp}\\
+    \mu_{k+1} & = \T^*_e\L_{f_k} (\D_{f_k} L_{d_k}),\label{eqn:mukp}\\
     \mu_k & = -\T^*_e\L_{g_k}(\D_{g_k} L_{d_k})+ \Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} L_{d_k})),\label{eqn:muk}
 \end{align}
 and $E_{k+1}$ and $E_k$ are given by \eqref{eqn:Ep} and \eqref{eqn:Em}, respectively. 
@@ -222,36 +227,106 @@ The resulting discrete flow map is given by $\mathbb{F}^+L_{d_k} \circ (\mathbb{
 More specifically, for given $(t_k, E_k, g_k, \mu_k)$, \eqref{eqn:Em} and \eqref{eqn:muk} are solved together for $t_{k+1},f_k$ with the constraint $t_{k+1}>t_k$.
 Then, $(E_{k+1}, g_{k+1},\mu_{k+1})$ are computed by \eqref{eqn:Ep}, \eqref{eqn:gkp}, and \eqref{eqn:mukp}, respectively.
 This yields the discrete flow map $(t_k, E_k, g_k, \mu_k)\rightarrow(t_{k+1}, E_{k+1}, g_{k+1}, \mu_{k+1})$ consistent with \eqref{eqn:DEL} and \eqref{eqn:DELt}.
+While the flow map is described by $E$ for convenience, the initial value of $E_0$ is often selected by choosing the initial timestep $h_0$ and calculating the corresponding value of $E_0$ through \eqref{eqn:Em}.
 
 \section{Bregman Lagrangian Systems on $\G$}
 
-On a second thought, do we really need Hamiltonian system, given that we have VI for the time-varying Lagrangian system. 
+\newcommand{\obj}{\mathsf{f}}
 
-Bregman Lagrangian is
-\begin{align*}
-    L = e^{\alpha(t)+\gamma(t)} D_h(x+ e^{-\alpha(t)} v, x) - e^{\alpha+\beta+\gamma} f(x),
-\end{align*}
-where 
-\begin{align*}
-    \dot\beta \leq e^\alpha\\
-    \dot \gamma = e^\alpha.
-\end{align*}
-In particular, the following choice has been made. 
-For $p,C>0$,
-\begin{align*}
-    \alpha & = \log p - \log t\\
-    \beta & = p\log t + \log C\\
-    \gamma & = p \log t.
-\end{align*}
-Substituting these,
-\begin{align*}
-    L = p t^{p-1} D_h(x+ \frac{t}{p} v, x) - p C t^{2p-1} f(x).
-\end{align*}
-Further when $h(x)=\frac{1}{2}\|x\|^2$, 
-\begin{align*}
-    L = \frac{t^{p+1}}{2p} \| v\|^2 - p C t^{2p-1} f(x).
-\end{align*}
+Let $\obj:\G\rightarrow\Re$ be a real-valued smooth function on $\G$.
+We focus on the optimization problem
+\begin{align}
+    \min_{g\in\G} \obj (g).
+\end{align}
+Variational accelerated optimization scheme for the above problem has been presented in~\cite{tao2020variational}, where the Nesterov accelerated gradient (NAG) descent on a finite-dimensional vector space is intrinsically generalized to a Lie group. 
+In this section, we consider an intrinsic formulation of the Bregman Lagrangian dynamics~\cite{wibisono2016variational}, which encloses a large class of accelerated optimization scheme, including NAG.
 
+\subsection{Continuous-Time Bregman Dynamics}
+
+Let $\mathbf{J}:\g\rightarrow\g^*$ be defined such that $\pair{\mathbf{J}(\xi),\zeta}$ is positive-definite and symmetric as a bilinear form of $\xi,\zeta\in\g$.
+Define the metric $\met{\cdot,\cdot}:\g\times\g\rightarrow\Re$ with $\met{\xi,\zeta} = \pair{\mathbf{J}(\xi),\zeta}$.
+This serves as a left-invariant Riemmanian metric on $\G$.
+Also $\|\xi\|^2 = \met{\xi,\xi}$ for any $\xi\in\g$.
+
+The Bregman Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow$ is given by
+\begin{align}
+    L(t,g,\xi) = \frac{t^{\lambda p+1}}{2p} \|\xi\|^2 - C p t^{(\lambda+1)p-1} \obj (g),\label{eqn:BL}
+\end{align}
+for $p, C>0$, and $\lambda\geq 1$.
+When applied to $\G=\Re^n$ with $\lambda=1$, this is a special case of Bregman Lagrangian~\cite{wibisono2016variational}, and it recovers the continuous-time limit of Nesterovi's accelerated minor descent with $p=2$~\cite{nesterov2005smooth}.
+Also, in case $p = 3$, it corresponds to the continuous-time limit of Nesterov’s accelerated cubic-regularized Newton’s method~\cite{nesterov2008accelerating}.
+When $\G$ is considered as a Riemannian manifold with the above metric, this corresponds to the $p$-Bregman Lagrangian in~\cite{duruisseaux2021variational}.
+The additional term $\lambda$ has been introduced in~\cite{alimisis2020continuous}, and it accounts the curvature of the manifold. 
+
+Let the left-trivialized derivative of the objective function be
+\begin{align}
+    \nabla_\L f(g) = \T_e^*\L_g (\D_g \obj(g)).\label{eqn:grad}
+\end{align}
+According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follows.
+\begin{prop}
+    The Euler-Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are given by
+    \begin{align}
+        \frac{d \mathbf{J}(\xi)}{dt} + \frac{\lambda p+1}{t}\mathbf{J}(\xi) - \ad^*_\xi \mathbf{J}(\xi)
+        + Cp^2 t^{p-2} \nabla_\L \obj (g) =0.\label{eqn:EL_Breg}
+    \end{align}
+    and \eqref{eqn:g_dot}. 
+    Further, the corresponding continuous flow locally converges to the minimizer $g^*$ of $\obj$ with the rate given by
+    \begin{align}
+        \obj(g(t)) - \obj(g^*) \in \mathcal{O}(t^{-p}),
+    \end{align}
+    when $f$ is geodesically convex. 
+\end{prop}
+\begin{proof}
+    We have
+    \begin{align*}
+        \deriv{L}{\xi} & = \frac{t^{\lambda p+1}}{p}\mathbf{J}(\xi)
+    \end{align*}
+    Substituting this into \eqref{eqn:EL} and using \eqref{eqn:grad}, 
+    \begin{gather*}
+        \frac{t^{\lambda p+1}}{p}\frac{d \mathbf{J}(\xi)}{dt} + \frac{(\lambda p+1)t^{\lambda p}}{p}\mathbf{J}(\xi) -\frac{t^{\lambda p+1}}{p} \ad^*_\xi \mathbf{J}(\xi) \\
+        + Cpt^{(\lambda +1)p-1} \nabla_\L \obj(g) =0.
+    \end{gather*}
+    Dividing both sides by $\frac{t^{\lambda p+1}}{p}$ yields \eqref{eqn:EL_Breg}.
+    The convergence property is established by~\cite[Theorem 3.2]{duruisseaux2021variational}.
+\end{proof}
+
+\subsection{Lie Group Variational Integrator for Bregman Dynamics}
+
+Let $h_k = t_{k+1}- t_k$ and $t_{k,k+1} = t_k + h_k/2$.  
+We consider the following form of the discrete Lagrangian
+\begin{align}
+    L_d(t_k, t_{k+1}, g_k, f_k ) & = \frac{\phi(t_{k,k+1}) }{2 h_k} T(f_k) -\frac{h_k}{2} \theta(t_k) \obj (g_k)\nonumber \\
+                                 & \quad -\frac{h_k}{2} \theta(t_{k+1}) \obj (g_kf_k), \label{eqn:Ld}
+\end{align}
+where $T_d(f_k):\G\rightarrow\Re$ is chosen to approximate $T(f_k) =h_k^2 \|\xi_k \|^2/$, and
+\begin{align}
+    \phi(t) & = \frac{t^{\lambda p +1}}{p},\\
+    \theta(t) & = C p t^{(\lambda+1)p-1}.
+\end{align}
+The corresponding variational integrators are presented as follows. 
+\begin{prop}
+    The discrete-time Euler-Lagrange equation, or the Lie group variational integrator corresponding to \eqref{eqn:Ld} are given by
+\begin{align}
+    \mu_k & =  \frac{\phi_{k,k+1}}{h_k}\Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} T_{d_k})) + \frac{h_k\theta_k}{2} \nabla_L \obj_k, \\
+    \mu_{k+1} & = \Ad^*_{f_k}( \mu_k - \frac{h_k\theta_k}{2} \nabla_L\obj_k ) -\frac{h_k\theta_{k+1}}{2} \nabla_\L \obj_{k+1}\\
+    E_{k} & = \frac{\phi'_{k,k+1}}{ 4 h_k} T_{d_k} -\frac{h_k\theta'_{k}}{2} \obj_{k} \nonumber\\\
+          & \quad + \frac{\phi_{k,k+1}}{2h_k^2}T_{d_k} -\frac{\theta_k}{2}\obj_k - \frac{\theta_{k+1}}{2}\obj_{k+1},\\
+    E_{k+1} & = -\frac{\phi'_{k,k+1}}{ 4 h_k} T_{d_k} +\frac{h_k\theta'_{k+1}}{2} \obj_{k+1}\nonumber \\\
+            & \quad + \frac{\phi_{k,k+1}}{2h_k^2}T_{d_k} -\frac{\theta_k}{2}\obj_k - \frac{\theta_{k+1}}{2}\obj_{k+1},
+\end{align}
+together with \eqref{eqn:gkp}, where
+\begin{align*}
+    \phi'(t) & = \frac{(\lambda p +1) t^{\lambda p}}{p}, \\
+    \theta'(t) &  = Cp((\lambda+1)p-1) t^{(\lambda +1)p-2}.
+\end{align*}
+\end{prop}
+\begin{proof}
+    These can be derived by substituting \eqref{eqn:Ld} into \eqref{eqn:muk}, \eqref{eqn:mukp}, \eqref{eqn:Em}, and \eqref{eqn:Ep}, respectively. 
+\end{proof}
+As discussed at the end of Section III, these provide symplectic and momentum preserving discrete time flow.
+Since these corresponds to a discretization of the Bregman Lagrangian system, they can be utilized for optimization on any Lie group $\G$. 
+
+\section{Applications}
 
 \subsection{Continuous-Time EL}
 

@@ -1,8 +1,5 @@
-function vigdSO3
-%% second order attempt
-
-global A p J C Jd
-close all
+function [t, JJ, errR] = vigdSO3(A,p,J,R0,hk,T,flag_update_h)
+global A J Jd
 
 % A=rand(3,3);%diag([5, 3, 1])*expm(pi*hat([1 1 1])/sqrt(3));
 % A = eye(3);
@@ -10,29 +7,31 @@ close all
 %     0.4579    0.8653    0.9180
 %     0.8375    0.9539    0.3723];
 
-load gdSO3_0 A
+% load gdSO3_0 A R0 p C J Jd R_opt J_opt
 
 [U S V]=psvd(A);
 R_opt = U*V';
 J_opt = obj(R_opt);
-
-p=3;
+% 
+% p=2;
 C=1;
-J=eye(3);
+% J=eye(3);
+
+
 Jd=trace(J)/2*eye(3)-J;%nonstandard inertia matrix
 
 
 %%
-T = 30;
-hk = 0.6;
+% T = 10;
+% hk = 0.01;
 
-R(:,:,1)=eye(3);
+R(:,:,1)=R0;
 Pi(:,1)=zeros(3,1);
 t(1)=1;
 JJ(1) = obj(R(:,:,1));
 M(:,1) = grad(R(:,:,1));
 
-[~, E(1)] = err_FLdm(hk, t(1), Pi(:,1), R(:,:,1), 0, JJ(1), M(:,1));
+[~, E(1)] = err_FLdm(hk, t(1), Pi(:,1), R(:,:,1), 0, JJ(1), M(:,1), p, C);
 
 options = optimoptions(@lsqnonlin,'StepTolerance', 1e-8, 'Display', 'off');
 
@@ -42,7 +41,9 @@ while t(k) < T
         disp([t(k)/T]);
     end
     
-    [hk, res] = lsqnonlin(@(hk) err_FLdm(hk, t(k), Pi(:,k), R(:,:,k), E(k), JJ(k), M(:,k)), 0.01, 0, [], options);
+    if flag_update_h
+        [hk, res] = lsqnonlin(@(hk) err_FLdm(hk, t(k), Pi(:,k), R(:,:,k), E(k), JJ(k), M(:,k), p, C), 0.01, 0, [], options);
+    end
     
     t(k+1) = t(k) + hk;
     tkkp= (t(k)+t(k+1))/2;
@@ -60,22 +61,26 @@ while t(k) < T
     k=k+1;
 end
 
+N=length(t);
 %%
 
 JJ=JJ-J_opt;
-plot(t,JJ);
-set(gca,'xscale','log','yscale','log');
+% plot(t,JJ);
+% set(gca,'xscale','log','yscale','log');
+for k=1:N
+    errR(k) = norm(R(:,:,k)'*R(:,:,k)-eye(3));
+end
 
 
-filename='vigdSO3_0';
-save(filename);
-evalin('base','clear all');
-evalin('base',['load ' filename]);
+% filename='vigdSO3_0';
+% save(filename);
+% evalin('base','clear all');
+% evalin('base',['load ' filename]);
 
 end
 
-function [errE FLdm]= err_FLdm(hk, tk, Pik, Rk, Ek, Jk, Mk)
-global p C Jd
+function [errE FLdm]= err_FLdm(hk, tk, Pik, Rk, Ek, Jk, Mk, p, C)
+global Jd
 
 tkp = tk + hk;
 tkkp= (tk+tkp)/2;

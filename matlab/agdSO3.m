@@ -1,6 +1,6 @@
-function [t_GD, J_GD, errR_GD]=gdSO3(A,J,R0,T)
-global A p J C
-close all
+function [t_AGD, J_AGD, errR_AGD]=agdSO3(A,p,J,R0,T)
+global A
+
 
 % A=rand(3,3);%diag([5, 3, 1])*expm(pi*hat([1 1 1])/sqrt(3));
 % A = [    0.7572    0.5678    0.5308
@@ -15,27 +15,41 @@ J_opt = obj(R_opt);
 C=1;
 % J=eye(3);
 
-%% GD
-% % r =     [0.7915
-% %     -0.3101
-% %     0.5267];
-% R0 = U*expm(pi*hat(r))*V';
-W0 = zeros(3,1);
-X0=reshape(R0,9,1);
-tspan=[1 T];
+%% AGD
+W0=zeros(3,1);
+X0=[reshape(R0,9,1); W0];
 
 options = odeset('RelTol',1e-8,'AbsTol',1e-8);
-sol = ode45(@eom_GD, tspan, X0, options);
+sol=ode45(@(t,X) eom_AGD(t,X,p,J,C), [1 T], X0, options);
 t=sol.x;X=sol.y';disp(sol.stats);
 
 N=length(t);
-for k=1:N
-    R_GD(:,:,k) = reshape(X(k,:),3,3);
-    J_GD(k) = obj(R_GD(:,:,k))-J_opt;
-    errR_GD(k) = norm(R_GD(:,:,k)'*R_GD(:,:,k)-eye(3));
-end
+W=X(:,10:12)';
 
-t_GD=t;
+for k=1:N
+    R_AGD(:,:,k) = reshape(X(k,1:9),3,3);
+    J_AGD(k) = obj(R_AGD(:,:,k))-J_opt;
+    Pi_AGD(:,k) = t(k)^(p+1)/p*J*W(:,k);
+    errR_AGD(k) = norm(R_AGD(:,:,k)'*R_AGD(:,:,k)-eye(3));
+end
+t_AGD = t;
+
+% %% AGD_Pi
+% 
+% 
+% X0=[reshape(R0,9,1); J*W0];
+% 
+% sol=ode45(@eom_AGD_Pi, tspan, X0, options);
+% t=sol.x;X=sol.y';disp(sol.stats);
+% 
+% N=length(t);
+% Pi=X(:,10:12)';
+% 
+% for k=1:N
+%     R_AGD_Pi(:,:,k) = reshape(X(k,1:9),3,3);
+%     J_AGD_Pi(k) = obj(R_AGD_Pi(:,:,k))-J_opt;
+% end
+% t_AGD_Pi = t;
 % 
 % 
 % %% Post Process
@@ -74,8 +88,7 @@ R_dot = R*hat(M);
 X_dot = reshape(R_dot,9,1);
 end
 
-function X_dot = eom_AGD(t,X)
-global p J C
+function X_dot = eom_AGD(t,X, p, J,C)
 R=reshape(X(1:9),3,3);
 W=X(10:12);
 

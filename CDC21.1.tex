@@ -1,7 +1,7 @@
 \documentclass[letterpaper, 10pt, conference]{ieeeconf}
 \IEEEoverridecommandlockouts \overrideIEEEmargins
 \usepackage{amsmath,amssymb,url}
-\usepackage{graphicx}%,subfigure}
+\usepackage{graphicx,subfigure}
 \usepackage{color}
 \usepackage{siunitx}
 %\usepackage[hidelinks]{hyperref}
@@ -40,12 +40,12 @@
     \node (X) [draw, shape=circle, inner sep=0] {#1};}
 
 
-\title{\LARGE \bf Variational Accelerated Optimization on a Lie Group}
+\title{\LARGE \bf Variational Symplectic Accelerated Optimization on Lie Groups}
 
-\author{Taeyoung Lee%\authorrefmark{1}%
-    \thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 10051 {\tt tylee@gwu.edu}}%
-    %\thanks{\textsuperscript{\footnotesize\ensuremath{*}}This research has been supported in part by NSF under the grant CNS-1837382.}%
-}
+%\author{Taeyoung Lee%\authorrefmark{1}%
+    %\thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 10051 {\tt tylee@gwu.edu}}%
+    %%\thanks{\textsuperscript{\footnotesize\ensuremath{*}}This research has been supported in part by NSF under the grant CNS-1837382.}%
+%}
 
 
 \newcommand{\RomanNumeralCaps}[1]{\textup{\uppercase\expandafter{\romannumeral#1}}}
@@ -62,9 +62,9 @@
 \newtheorem{prop}{Proposition}
 \newtheorem{remark}{Remark}
 
-\graphicspath{{./Figs/}}
+\graphicspath{{./figs/}}
 
-\color{white}\pagecolor{black}
+%\color{white}\pagecolor{black}
 
 \begin{document}
 \allowdisplaybreaks
@@ -86,27 +86,30 @@ They will be utilized in accelerated optimization with Bregman Lagrangian in the
 
 Consider  an $n$-dimensional Lie group $\G$.
 Let $\g$ be the lie algebra, or the tangent space at the identity, i.e., $\g = \T_e\G$.
-The tangent bundle of the group is identified with $\T\G \simeq G\times \g$ via left trivialization.
+The tangent bundle of the group is identified with $\T\G \simeq \G\times \g$ via left trivialization.
 More specifically, let $\L:\G\times\G\rightarrow\G$ be the left action defined such that $\L_g h = gh$ for $g,h\in\G$.
 For any $v\in\T_g\G$, there exists $\xi\in\g$ such that $v =\T_e\L_g \xi=g\xi$.
 Utilizing this, the kinematics equation can be written as
 \begin{align}
     \dot g = g\xi. \label{eqn:g_dot}
 \end{align}
-Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which is extended to the corresponding inner product on $\T_g\G$ through the left trivialization, i.e., for any $v,w\in\T_g\G$, we have $\pair{w,v}_{\T_g\G} = \pair{ \T_g \L_{g^{-1}} v, \T_g \L_{g^{-1}} w}_\g$. 
-Considering the inner product as a pairing between a tangent vector and a cotangent vector, $g\simeq g^*$ and $\T_g \G \simeq \T^*_g \G\simeq G\times \g^*$.
+Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which is extended to the corresponding inner product on $\T_g\G$ through the left trivialization.
+For any $v,w\in\T_g\G$, we have $\pair{w,v}_{\T_g\G} = \pair{ \T_g \L_{g^{-1}} v, \T_g \L_{g^{-1}} w}_\g$. 
+Considering the inner product as a pairing between a tangent vector and a cotangent vector, we identify $\g\simeq \g^*$ and $\T_g \G \simeq \T^*_g \G\simeq G\times \g^*$.
 Throughout this paper, the pairing is also denoted by $\cdot$.
+Let $\mathbf{J}:\g\rightarrow\g^*$ be defined such that $\pair{\mathbf{J}(\xi),\zeta}$ is positive-definite and symmetric as a bilinear form of $\xi,\zeta\in\g$.
+Define the metric $\met{\cdot,\cdot}:\g\times\g\rightarrow\Re$ with $\met{\xi,\zeta} = \pair{\mathbf{J}(\xi),\zeta}$.
+This serves as a left-invariant Riemmanian metric on $\G$.
+Also $\|\xi\|^2 = \met{\xi,\xi}$ for any $\xi\in\g$.
 The adjoint operator is denoted by $\Ad_g:\g\rightarrow\g$, and the ad operator is denoted by $\ad_\xi:\g\rightarrow\g$. See, for example~\cite{MarRat99} for detailed preliminaries. 
 
-
 \subsection{Continuous-Time Extended Lagrangian Mechanics}
-
 
 Consider a non-autonomous Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ on the \textit{extended state space} including the space of time.
 The corresponding \textit{extended path space} is composed of the curves $(c_t(a),c_g(a))$ on $\Re\times \G$ parameterized by $a>0$.
 To ensure that the reparameterized time increases monotonically, we require $c'_t(a) > 0$. 
 For a given interval of time $[t_0,t_f]$, the equivalent interval $[a_0,a_f]$ of $a$ is chosen such that $t_0=c_t(a_0)$ and $t_f=c_t(a_f)$.
-For any path $(c_t(a),c_g(a))$ over $[a_0,a_f]$ in the extended space, the \textit{associated curve} $g$ is defined by
+For any path $(c_t(a),c_g(a))$ over $[a_0,a_f]$ in the extended space, the \textit{associated curve} is defined by
 \begin{align}
     g(t) = c_g(c_t^{-1}(t)),\label{eqn:ac}
 \end{align}
@@ -135,17 +138,17 @@ Introducing the Legendre transform $\mu = \deriv{L}{\xi} \in\g^*$, and assuming 
 \subsection{Extended Lie Group Variational Integrator}
 
 Variational integrators are geometric numerical integration schemes interpreted as discrete-time mechanics, and they are constructed by discretizing the variational principle for Lagrangian mechanics~\cite{MarWesAN01}.
-The solution of variational integrators are symplectic and they preserve any symmetry according to the discrete analogue of Nother's theorem.
+The solutions of variational integrators are symplectic and they preserve any symmetry according to the discrete analogue of Nother's theorem.
 As such, they provide long-term structural stability in numerical simulation. 
-For Lagrangian mechanics evolving on a Lie group, the corresponding Lie group variational integrators are presented in~\cite{Leo04,Lee08,LeeLeoCMAME07}.
+For Lagrangian mechanics evolving on a Lie group, the corresponding Lie group variational integrators have been presented in~\cite{Leo04,Lee08,LeeLeoCMAME07}.
 
-Here, we present extended Lie group variational integrator by discretizing the extended variational principle presented above, by following the general framework of~\cite{MarWesAN01}.
+Here, we develop extended Lie group variational integrators by discretizing the extended variational principle presented above, by following the general framework of~\cite{MarWesAN01}.
 The \textit{extended discrete path space} is composed of the sequence $\{(t_k, g_k)\}_{k=0}^N$ on $\Re\times\G$, satisfying $t_{k+1}>t_k$.
 Next, the discrete kinematics equation is chosen as
 \begin{align}
     g_{k+1} = g_k f_k, \label{eqn:gkp}
 \end{align}
-for $f_k \in\G$ representing the relative update of the state over a single timestep. 
+for $f_k \in\G$ representing the relative update over a single timestep. 
 The discrete Lagrangian $L_d(t_k, t_{k+1}, g_k, f_k): \Re\times\Re\times\G\times\G\rightarrow \Re$ is chosen such that the following \textit{extended discrete action sum}
 \begin{align}
     \mathfrak{G}_d(\{(t_k, g_k)\}_{k=0}^N) = \sum_{k=0}^{N-1} L_d(t_k, t_{k+1}, g_k, f_k), \label{eqn:Gd}
@@ -185,7 +188,7 @@ Now the discrete Euler-Lagrange equations can be developed according to the vari
     \end{align*}
     Since the endpoints are fixed, we have $\eta_0=0$ and $\delta t_0 = 0$.
     Therefore in the above expression, the range of summation for the terms paired with $\eta_k$ and $\delta t_k$ can be reduced to $1\leq k\leq N-1$. 
-    Also, using $\eta_N=0$ and $\delta t_N=0$, for the other terms paired with $\eta_{k+1}$ and $\delta_{k+1}$, the subscript for the time index can be reduced by one for the same range of $k$.
+    Also, using $\eta_N=0$ and $\delta t_N=0$, for the other terms paired with $\eta_{k+1}$ and $\delta t_{k+1}$, the subscript can be reduced by one for the summation over the same range.
     Therefore, 
     \begin{align*}
         \delta \mathfrak{G}_d  = \sum_{k=1}^{N-1}
@@ -193,72 +196,70 @@ Now the discrete Euler-Lagrange equations can be developed according to the vari
         & + (\T^*_e\L_{f_{k-1}}(\D_{f_{k-1}} L_{d_{k-1}})) \big\} \cdot \eta_{k} \\
         & + \{ \D_{t_k} L_{d_k} + \D_{t_{k}} \D_{d_{k-1}} \} \delta t_k.
     \end{align*}
-    According to the variational principle, $\delta\mathfrak{G}_d = 0$ for any $\eta_k$ and $\delta t_k$, which yields \eqref{eqn:DEL}.
+    According to the variational principle, $\delta\mathfrak{G}_d = 0$ for any $\eta_k$ and $\delta t_k$, which yields \eqref{eqn:DEL} and \eqref{eqn:DELt}.
 \end{proof}
 The most notable difference against the continuous-time counterpart is that in addition to the discrete Euler-Lagrange equation \eqref{eqn:DEL}, we have the additional equation \eqref{eqn:DELt} for the evolution of the discrete time. 
 This is because the discrete action sum $\mathfrak{G}_d$ depends on the complete extended path $\{(t_k,g_k)\}_{k=1}^N$.
-Whereas the action $\mathfrak{G}$ in the continuous time formulation is a function of the associated curve \eqref{eqn:ac}.
+Whereas the action $\mathfrak{G}$ in the continuous-time formulation is a function of the associated curve \eqref{eqn:ac} only.
+
 The evolution of the discrete time is associated with the energy.
 Let the discrete energies be
 \begin{align}
-    E^+_k &= - \D_{t_{k+1}} L_{d_k}\label{eqn:Ep}\\
+    E^+_k &= - \D_{t_{k+1}} L_{d_k},\label{eqn:Ep}\\
     E^-_k &= \D_{t_{k}} L_{d_k}.\label{eqn:Em}
 \end{align}
 Then, \eqref{eqn:DELt} can be rewritten as
 \begin{align}
     E^+_{k-1} = E^-_k,\label{eqn:DELE}
 \end{align}
-which reflects to the evolution of the discrete energy.
+which reflects the evolution of the discrete energy.
 
 In case the discrete Lagrangian is time-invariant so that $L_d(t_k,t_{k+1},g_k,f_k) =  L_d(t_k+s,t_{k+1}+s,g_k,f_k)$ for any $s$, 
 we have $\D_{t_k}L_{d_k} + \D_{t_{k+1}}L_{d_k}=0$, or equivalently $E^-_k = E^+_k$. 
 Combined with \eqref{eqn:DELE}, this yields $E_{k-1}^+ = E_k^+$ and $E_{k-1}^-=E_k^-$, which shows the conservation of discrete energy for autonomous Lagrangian systems. 
 
-To implement \eqref{eqn:DEL} and \eqref{eqn:DELt}, it is more convenient to introduce the \textit{extended discrete Legendre transform}, $\mathbb{F}^\pm L_{d_k}: \Re\times\Re \times \G \times \G \rightarrow \Re\times \Re\times\G\times\g^*$
+To implement \eqref{eqn:DEL} and \eqref{eqn:DELt} as a numerical integrator, it is more convenient to introduce the \textit{extended discrete Legendre transform}, $\mathbb{F}^\pm L_{d_k}: \Re\times\Re \times \G \times \G \rightarrow \Re\times \Re\times\G\times\g^*$ as
 \begin{align}
-    \mathbb{F}^+ L_{d_k} &= (t_{k+1}, E_{k+1}, g_{k+1}, \mu_{k+1}),\\
-    \mathbb{F}^- L_{d_k} &= (t_k, E_k, g_{k}, \mu_{k}).
+    \mathbb{F}^+ L_{d_k} (t_k,t_{k+1}, g_k,f_k) & = (t_{k+1}, E_{k+1}, g_{k+1}, \mu_{k+1}),\\
+    \mathbb{F}^- L_{d_k} (t_k,t_{k+1}, g_k,f_k) & = (t_k, E_k, g_{k}, \mu_{k}).
 \end{align}
 where
 \begin{align}
-    \mu_{k+1} & = \T^*_e\L_{f_k} (\D_{f_k} L_{d_k}),\label{eqn:mukp}\\
-    \mu_k & = -\T^*_e\L_{g_k}(\D_{g_k} L_{d_k})+ \Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} L_{d_k})),\label{eqn:muk}
+    \mu_k & = -\T^*_e\L_{g_k}(\D_{g_k} L_{d_k})+ \Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} L_{d_k})),\label{eqn:muk}\\
+    \mu_{k+1} & = \T^*_e\L_{f_k} (\D_{f_k} L_{d_k}),\label{eqn:mukp}
 \end{align}
 and $E_{k+1}$ and $E_k$ are given by \eqref{eqn:Ep} and \eqref{eqn:Em}, respectively. 
 
-The resulting discrete flow map is given by $\mathbb{F}^+L_{d_k} \circ (\mathbb{F}L_{d_k})^{-1}$. 
+The resulting discrete flow map is constructed by $\mathbb{F}^+L_{d_k} \circ (\mathbb{F}L_{d_k})^{-1}$. 
 More specifically, for given $(t_k, E_k, g_k, \mu_k)$, \eqref{eqn:Em} and \eqref{eqn:muk} are solved together for $t_{k+1},f_k$ with the constraint $t_{k+1}>t_k$.
 Then, $(E_{k+1}, g_{k+1},\mu_{k+1})$ are computed by \eqref{eqn:Ep}, \eqref{eqn:gkp}, and \eqref{eqn:mukp}, respectively.
 This yields the discrete flow map $(t_k, E_k, g_k, \mu_k)\rightarrow(t_{k+1}, E_{k+1}, g_{k+1}, \mu_{k+1})$ consistent with \eqref{eqn:DEL} and \eqref{eqn:DELt}.
 While the flow map is described by $E$ for convenience, the initial value of $E_0$ is often selected by choosing the initial timestep $h_0$ and calculating the corresponding value of $E_0$ through \eqref{eqn:Em}.
+This inherits the desirable properties of variational integrators, and the group structure is also preserved through \eqref{eqn:gkp}.
 
 \section{Bregman Lagrangian Systems on $\G$}
 
 \newcommand{\obj}{\mathsf{f}}
 
 Let $\obj:\G\rightarrow\Re$ be a real-valued smooth function on $\G$.
-We focus on the optimization problem
+We focus on the optimization problem:
 \begin{align}
     \min_{g\in\G} \obj (g).
 \end{align}
 Variational accelerated optimization scheme for the above problem has been presented in~\cite{tao2020variational}, where the Nesterov accelerated gradient (NAG) descent on a finite-dimensional vector space is intrinsically generalized to a Lie group. 
 In this section, we consider an intrinsic formulation of the Bregman Lagrangian dynamics~\cite{wibisono2016variational}, which encloses a large class of accelerated optimization scheme, including NAG.
+More importantly, it guarantees polynomial convergence rates up to an arbitrary order.
 
 \subsection{Continuous-Time Bregman Dynamics}
-
-Let $\mathbf{J}:\g\rightarrow\g^*$ be defined such that $\pair{\mathbf{J}(\xi),\zeta}$ is positive-definite and symmetric as a bilinear form of $\xi,\zeta\in\g$.
-Define the metric $\met{\cdot,\cdot}:\g\times\g\rightarrow\Re$ with $\met{\xi,\zeta} = \pair{\mathbf{J}(\xi),\zeta}$.
-This serves as a left-invariant Riemmanian metric on $\G$.
-Also $\|\xi\|^2 = \met{\xi,\xi}$ for any $\xi\in\g$.
 
 The Bregman Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow$ is given by
 \begin{align}
     L(t,g,\xi) = \frac{t^{\lambda p+1}}{2p} \|\xi\|^2 - C p t^{(\lambda+1)p-1} \obj (g),\label{eqn:BL}
 \end{align}
 for $p, C>0$, and $\lambda\geq 1$.
-When applied to $\G=\Re^n$ with $\lambda=1$, this is a special case of Bregman Lagrangian~\cite{wibisono2016variational}, and it recovers the continuous-time limit of Nesterovi's accelerated minor descent with $p=2$~\cite{nesterov2005smooth}.
+When applied to $\G=\Re^n$ with $\lambda=1$, this is a special case of Bregman Lagrangian~\cite{wibisono2016variational}, and it recovers the continuous-time limit of Nesterov's accelerated minor descent with $p=2$~\cite{nesterov2005smooth}.
 Also, in case $p = 3$, it corresponds to the continuous-time limit of Nesterov’s accelerated cubic-regularized Newton’s method~\cite{nesterov2008accelerating}.
-When $\G$ is considered as a Riemannian manifold with the above metric, this corresponds to the $p$-Bregman Lagrangian in~\cite{duruisseaux2021variational}.
+When $\G$ is considered as a Riemannian manifold, this corresponds to the $p$-Bregman Lagrangian in~\cite{duruisseaux2021variational}.
 The additional term $\lambda$ has been introduced in~\cite{alimisis2020continuous}, and it accounts the curvature of the manifold. 
 
 Let the left-trivialized derivative of the objective function be
@@ -270,7 +271,7 @@ According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follow
     The Euler-Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are given by
     \begin{align}
         \frac{d \mathbf{J}(\xi)}{dt} + \frac{\lambda p+1}{t}\mathbf{J}(\xi) - \ad^*_\xi \mathbf{J}(\xi)
-        + Cp^2 t^{p-2} \nabla_\L \obj (g) =0.\label{eqn:EL_Breg}
+        + Cp^2 t^{p-2} \nabla_\L \obj (g) =0, \label{eqn:EL_Breg}
     \end{align}
     and \eqref{eqn:g_dot}. 
     Further, the corresponding continuous flow locally converges to the minimizer $g^*$ of $\obj$ with the rate given by
@@ -293,6 +294,14 @@ According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follow
     The convergence property is established by~\cite[Theorem 3.2]{duruisseaux2021variational}.
 \end{proof}
 
+Therefore, the optimization problem on $\G$ can be addressed by numerically integrating \eqref{eqn:EL_Breg} from an initial guess. 
+However, it has been discovered that a naive discretization is not able to match the polynomial convergence rate~\cite{wibisono2016variational}.
+Here we have additional computational requirements that the optimal solution lies in the Lie group.
+
+These two challenges can be addressed by the Lie group variational integrator, 
+as their structure-preserving properties provide long-term numerical stabilities, and also the group structures are conserved. 
+In the subsequent section, we develop Lie group variational integrators for the Bregman Lagrangian system. 
+
 \subsection{Lie Group Variational Integrator for Bregman Dynamics}
 
 Let $h_k = t_{k+1}- t_k$ and $t_{k,k+1} = t_k + h_k/2$.  
@@ -301,14 +310,14 @@ We consider the following form of the discrete Lagrangian
     L_d(t_k, t_{k+1}, g_k, f_k ) & = \frac{\phi(t_{k,k+1}) }{h_k} T_d(f_k) -\frac{h_k}{2} \theta(t_k) \obj (g_k)\nonumber \\
                                  & \quad -\frac{h_k}{2} \theta(t_{k+1}) \obj (g_kf_k), \label{eqn:Ld}
 \end{align}
-where $T_d(f_k):\G\rightarrow\Re$ is chosen such that it approximate $T(f_k) \approx h_k^2 \|\xi_k \|^2/2$, and
+where $T_d(f_k):\G\rightarrow\Re$ is chosen such that it approximate $T(f_k) \approx h_k^2 \|\xi_k \|^2/2$, and $\phi,\theta:\Re\rightarrow\Re$ are 
 \begin{align}
     \phi(t) & = \frac{t^{\lambda p +1}}{p},\\
     \theta(t) & = C p t^{(\lambda+1)p-1}.
 \end{align}
 The corresponding variational integrators are presented as follows. 
 \begin{prop}\label{prop:DEL_Breg}
-    The discrete-time Euler-Lagrange equation, or the Lie group variational integrator corresponding to \eqref{eqn:Ld} are given by
+    The discrete-time Euler-Lagrange equation, or the Lie group variational integrator for the Bregman Lagrangian corresponding to \eqref{eqn:Ld} are given by
 \begin{align}
     \mu_k & =  \frac{\phi_{k,k+1}}{h_k}\Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} T_{d_k})) + \frac{h_k\theta_k}{2} \nabla_L \obj_k, \label{eqn:muk_Breg}\\
     \mu_{k+1} & = \Ad^*_{f_k}( \mu_k - \frac{h_k\theta_k}{2} \nabla_L\obj_k ) -\frac{h_k\theta_{k+1}}{2} \nabla_\L \obj_{k+1}, \label{eqn:mukp_Breg}\\
@@ -327,10 +336,12 @@ together with \eqref{eqn:gkp}, where
     These can be derived by substituting \eqref{eqn:Ld} into \eqref{eqn:muk}, \eqref{eqn:mukp}, \eqref{eqn:Em}, and \eqref{eqn:Ep}, respectively. 
 \end{proof}
 As discussed at the end of Section III, these provide symplectic and momentum preserving discrete time flow.
-Since these corresponds to a discretization of the Bregman Lagrangian system, they can be utilized for optimization on any Lie group $\G$. 
+Since these corresponds to a discretization of the Bregman Lagrangian system, they can be considered as a geometric numerical integrator of \eqref{eqn:EL_Breg}, or utilized as an optimization algorithm on $\G$.
 Assuming that $T_d(f_k)=T_d(f_k^{-1})$, the discrete Lagrangian is self-adjoint, and therefore, the above integrator is of the second-order.
 
-\section{Optimization Algorithms on $\G$}
+\section{Optimization on $\G$}
+
+In this section, we present both of the continuous Bregman Lagrangian system and the Lie group variational integrator for several cases of the Lie group.
 
 \subsection{Euclidean Space $\Re^n$}
 
@@ -383,7 +394,7 @@ The metric is chosen as
 \begin{align}
     \langle \mathbf{J}(\hat \eta), \hat \xi \rangle_{\so} = \tr{\hat \eta^T J_d \hat \xi} = \eta^TJ \xi = \pair{J\eta,\xi}_{\Re^3},\label{eqn:met_SO3}
 \end{align}
-where $J\in\Re^{3\times 3}$ is symmetric and positive-definite, and $J_d=\frac{1}{2}\tr{J}I_{3\times 3}-J$.
+where $J\in\Re^{3\times 3}$ is a symmetric, positive-definite matrix, and $J_d=\frac{1}{2}\tr{J}I_{3\times 3}-J\in\Re^{3\times 3}$.
 Further, 
 \begin{align*}
     \ad_\eta\xi = \eta\times \xi, \quad \ad^*_\eta \xi = \xi\times \eta,\\
@@ -403,7 +414,7 @@ From \eqref{eqn:EL_Breg}, the Euler-Lagrange equations are given by
 Next, we derive variational integrators. 
 The kinematics equation is written as
 \begin{align}
-    R_{k+1} = R_k F_k,
+    R_{k+1} = R_k F_k, \label{eqn:Rkp}
 \end{align}
 for $F_k\in\SO$.
 Similar with~\cite{LeeLeoCMAME07}, the angular velocity is approximated with
@@ -427,6 +438,7 @@ which satisfies $T_d(F_k)=T_d(F_k^T)$.
     E_{k+1} & = -\frac{\phi'_{k,k+1}}{ 2 h_k} \tr{(I-F_k)J_d} +\frac{h_k\theta'_{k+1}}{2} \obj_{k+1}\nonumber \\\
             & \quad + \frac{\phi_{k,k+1}}{h_k^2} \tr{(I-F_k)J_d} +\frac{\theta_k}{2}\obj_k + \frac{\theta_{k+1}}{2}\obj_{k+1}, \label{eqn:Ekp_SO3}
 \end{align}
+together with \eqref{eqn:Rkp}.
 \end{prop}
 \begin{proof}
     Let $\delta F_k = F_k \hat\chi_k$.
@@ -434,7 +446,7 @@ which satisfies $T_d(F_k)=T_d(F_k^T)$.
     \begin{align*}
         \D_{F_k} T_{d_k} \cdot \delta F_k = \tr{-F_k\hat\chi_k J_d} = (J_dF_k - F_k^T J_d)^\vee \cdot \chi,
     \end{align*}
-    where the last equality is from the identity, $\tr{-\hat x A} = x\cdot (A-A^T)^\vee$ for any $x\in\Re^3$ and $A\in\Re^{3\times 3}$.
+    where the last equality is from the identity, $\mathrm{tr}[-\hat x A]= x\cdot (A-A^T)^\vee$ for any $x\in\Re^3$ and $A\in\Re^{3\times 3}$.
     Thus, $\T^*_I \L_{F_k} (\D_{F_k} T_{d_k}) = (J_dF_k - F_k^T J_d)^\vee $. 
     Substituting this into \eqref{eqn:muk_Breg} and \eqref{eqn:mukp_Breg} yields \eqref{eqn:muk_SO3} and \eqref{eqn:mukp_SO3}, respectively. 
     The remaining \eqref{eqn:Ek_SO3} and \eqref{eqn:Ekp_SO3} are directly from \eqref{eqn:Ek_Breg} and \eqref{eqn:Ekp_Breg} with \eqref{eqn:Td_SO3}.
@@ -446,14 +458,15 @@ When $J=I_{3\times 3}$, or equivalently when $J_d = \frac{1}{2}I_{3\times 3}$, \
     F_k = \exp (\frac{\sin^{-1}\|a\|}{\|a\|}\hat a),
 \end{align}
 where $a = \frac{h_k}{\phi_{k,k+1}} (\mu_k - \frac{h_k\theta_k}{2}\nabla_\L \obj_k)\in\Re^3$.
+This can replace \eqref{eqn:muk_SO3}.
 
 \subsection{Product of $\Re^n$ and $\SO$}
 
 Suppose $\G=\SO\times \Re^n$.
 As it is the direct product of $\SO$ and $\Re^n$, the variation of the action sum is decomposed into two parts of $\SO$ and $\Re^n$. 
-Therefore, the continuous Euler-Lagrange equations on $\SO\times\Re^n$ is composed of \eqref{eqn:EL_Re} and \eqref{eqn:EL_SO3}, after replacing $\nabla \obj(x)$ of \eqref{eqn:EL_Re} with $\nabla_x \obj(R,x)$, and replacing $\nabla_\L f(R)$ of \eqref{eqn:EL_SO3} with $\T^*_I\L_R(\D_R\obj(R,x))$.
+Therefore, the continuous Euler-Lagrange equations on $\SO\times\Re^n$ are given by \eqref{eqn:EL_Re} and \eqref{eqn:EL_SO3}, after replacing $\nabla \obj(x)$ of \eqref{eqn:EL_Re} with $\nabla_x \obj(R,x)$, and replacing $\nabla_\L f(R)$ of \eqref{eqn:EL_SO3} with $\T^*_I\L_R(\D_R\obj(R,x))$.
 
-Similarly, the corresponding Lie group variational integrators are given by \eqref{eqn:muk_Re}, \eqref{eqn:mukp_Re}, \eqref{eqn:muk_SO3}, and \eqref{eqn:mukp_SO3}, together with the energy equations \eqref{eqn:Ek_Breg} and \eqref{eqn:Ekp_Breg} with
+Similarly, the corresponding Lie group variational integrators are also given by \eqref{eqn:muk_Re}, \eqref{eqn:mukp_Re}, \eqref{eqn:muk_SO3}, and \eqref{eqn:mukp_SO3}, in addition to the energy equations \eqref{eqn:Ek_Breg} and \eqref{eqn:Ekp_Breg} with
 \begin{align*}
     T_{d_k}(F_k,\Delta x_k) = \frac{1}{2}\|\Delta x_k\|^2 + \tr{(I_{3\times 3}-F_k)J_d}.
 \end{align*}
@@ -463,58 +476,136 @@ For the case of $n=3$, these can be utilized for optimization on $\SE$ as well, 
 
 \subsection{Three-Dimensional Special Orthogonal Group $\SO$}
 
+Consider the objective function given by
 \begin{align*}
-    f(R) & = \frac{1}{2}\| A- R\|^2_F = \frac{1}{2} \tr{(A-R)^T(A-R)}  \\
-         & =\frac{1}{2}(\|A\|^2 + 3) - \tr{A^T R}.
+    \obj (R) & = \frac{1}{2}\| A- R\|^2_{\mathcal{F}}  %= \frac{1}{2} \tr{(A-R)^T(A-R)}  \\
+             =\frac{1}{2}(\|A\|^2_{\mathcal{F}} + 3) - \tr{A^T R},
 \end{align*}
-Thus,
+where $\|\cdot\|_{\mathcal{F}}$ denotes the Frobenius norm, and $A\in\Re^{3\times 3}$.
+Minimization of the above function appears in the least-square determination of attitude from direction measurements, referred to as Wahba's problem~\cite{WahSR65}. 
+There exists an explicit solution. 
+Let the singular value decomposition of $A$ be $A=USV^T$. 
+The optimal attitude is given by $R^* = \mathrm{det}(UV) UV^T$.
+
+Let $\delta R = R\hat\eta$ for $\eta\in\Re^3$.
+Since the derivative of $\obj$ is given by
 \begin{align*}
-    \D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta.
+    \D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta,
 \end{align*}
-This implies
+the left-trivialized gradient is
 \begin{align*}
-    M = (R^T A-A^T R)^\vee.
+    \nabla_\L \obj(R)  = (A^T R - R^T A)^\vee.
 \end{align*}
 
+Preliminary results for three types of methods, namely gradient descent integrated by \texttt{ode45}, continuous Bregman dynamics integrated by \texttt{ode45}, and Lie group variational integrator are presented in \Cref{fig:1}.
+Also, the three cases of $p=2$, $p=4$, and $p=6$ are considered.
+The tolerance of \texttt{ode45} is set to $10^{-8}$, and the initial step of LGVI is $h=0.1$.
+Overall the polynomial convergence guaranteed by \Cref{prop:EL_Breg} is observed. 
+Comparing LGVI and \texttt{ode45}, there is no meaningful difference in the convergence.
+But, \texttt{ode45} is faster with a greater error in the orthogonality.
 
-\bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}
-\bibliographystyle{IEEEtran}
+TBA: further numerical comparison and other examples.
+
+\begin{figure}
+    \centerline{
+        \subfigure[Convergence]{\includegraphics[width=0.7\columnwidth]{comp0_f}
+        }
+    }
+    \centerline{
+        \subfigure[Orthogonality error]{\includegraphics[width=0.7\columnwidth]{comp0_R}
+        }
+    }
+    \caption{Simulation results: gradient descent (black); ode45 integration of continuous Bregman EL (red); LGVI (blue); $p=2$ (dotted); $p=4$ (thin); $p=6$ (thick)}\label{fig:1}
+\end{figure}
+
+\begin{thebibliography}{10}
+\providecommand{\url}[1]{#1}
+\csname url@rmstyle\endcsname
+\providecommand{\newblock}{\relax}
+\providecommand{\bibinfo}[2]{#2}
+\providecommand\BIBentrySTDinterwordspacing{\spaceskip=0pt\relax}
+\providecommand\BIBentryALTinterwordstretchfactor{4}
+\providecommand\BIBentryALTinterwordspacing{\spaceskip=\fontdimen2\font plus
+\BIBentryALTinterwordstretchfactor\fontdimen3\font minus
+  \fontdimen4\font\relax}
+\providecommand\BIBforeignlanguage[2]{{%
+\expandafter\ifx\csname l@#1\endcsname\relax
+\typeout{** WARNING: IEEEtran.bst: No hyphenation pattern has been}%
+\typeout{** loaded for the language `#1'. Using the pattern for}%
+\typeout{** the default language instead.}%
+\else
+\language=\csname l@#1\endcsname
+\fi
+#2}}
+
+\bibitem{MarWesAN01}
+J.~Marsden and M.~West, ``Discrete mechanics and variational integrators,'' in
+  \emph{Acta Numerica}.\hskip 1em plus 0.5em minus 0.4em\relax Cambridge
+  University Press, 2001, vol.~10, pp. 317--514.
+
+\bibitem{LeeLeoCMAME07}
+T.~Lee, M.~Leok, and N.~McClamroch, ``Lie group variational integrators for the
+  full body problem,'' \emph{Computer Methods in Applied Mechanics and
+  Engineering}, vol. 196, pp. 2907--2924, May 2007.
+
+\bibitem{MarRat99}
+J.~Marsden and T.~Ratiu, \emph{Introduction to Mechanics and Symmetry},
+  2nd~ed., ser. Texts in Applied Mathematics.\hskip 1em plus 0.5em minus
+  0.4em\relax Springer-Verlag, 1999, vol.~17.
+
+\bibitem{LeeLeo17}
+T.~Lee, M.~Leok, and N.~McClamroch, \emph{Global Formulation of {L}agrangian
+  and {H}amiltonian Dynamics on Manifolds}.\hskip 1em plus 0.5em minus
+  0.4em\relax Springer, 2018.
+
+\bibitem{Leo04}
+M.~Leok, ``Foundations of computational geometric mechanics,'' Ph.D.
+  dissertation, California {I}nstittute of {T}echnology, 2004.
+
+\bibitem{Lee08}
+T.~Lee, ``Computational geometric mechanics and control of rigid bodies,''
+  Ph.D. dissertation, University of Michigan, 2008.
+
+\bibitem{tao2020variational}
+M.~Tao and T.~Ohsawa, ``Variational optimization on lie groups, with examples
+  of leading (generalized) eigenvalue problems,'' in \emph{International
+  Conference on Artificial Intelligence and Statistics}, 2020, pp. 4269--4280.
+
+\bibitem{wibisono2016variational}
+A.~Wibisono, A.~C. Wilson, and M.~I. Jordan, ``A variational perspective on
+  accelerated methods in optimization,'' \emph{proceedings of the National
+  Academy of Sciences}, vol. 113, no.~47, pp. E7351--E7358, 2016.
+
+\bibitem{nesterov2005smooth}
+Y.~Nesterov, ``Smooth minimization of non-smooth functions,''
+  \emph{Mathematical programming}, vol. 103, no.~1, pp. 127--152, 2005.
+
+\bibitem{nesterov2008accelerating}
+------, ``Accelerating the cubic regularization of newton’s method on convex
+  problems,'' \emph{Mathematical Programming}, vol. 112, no.~1, pp. 159--181,
+  2008.
+
+\bibitem{duruisseaux2021variational}
+V.~Duruisseaux and M.~Leok, ``A variational formulation of accelerated
+  optimization on riemannian manifolds,'' \emph{arXiv preprint
+  arXiv:2101.06552}, 2021.
+
+\bibitem{alimisis2020continuous}
+F.~Alimisis, A.~Orvieto, G.~B{\'e}cigneul, and A.~Lucchi, ``A continuous-time
+  perspective for modeling acceleration in riemannian optimization,'' in
+  \emph{International Conference on Artificial Intelligence and
+  Statistics}.\hskip 1em plus 0.5em minus 0.4em\relax PMLR, 2020, pp.
+  1297--1307.
+
+\bibitem{WahSR65}
+G.~Wahba, ``A least squares estimate of satellite attitude, {P}roblem 65-1,''
+  \emph{SIAM Review}, vol.~7, no.~5, p. 409, 1965.
+
+\end{thebibliography}
+
+%\bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}
+%\bibliographystyle{IEEEtran}
 
 \end{document}
-
-\begin{align*}
-    H(R_k, P_{k+1}) = P_{k+1} \cdot R_k   - \frac{1}{h} \tr{ (I-F_k) J_d},
-\end{align*}
-where $F_k$ is the solution of \eqref{eqn:Pkp} for given $(R_k,F_k)$, which is rewritten as
-
-The type II discrete Hamiltonian is
-\begin{align*}
-    H(R_k, P_{k+1}) = P_{k+1} \cdot R_k   - \frac{1}{h} \tr{ (I-F_k) J_d},
-\end{align*}
-where $F_k$ is the solution of \eqref{eqn:Pkp} for given $(R_k,F_k)$, which is rewritten as
-\begin{align*}
-    R_k^T P_{k+1} = \frac{1}{h}(F_k J_d F_k - J_d).
-\end{align*}
-Therefore, the Hamiltonian is rewritten in terms of $F_k$ into
-\begin{align*}
-    H(F_k(R_k, P_{k+1})) & = \frac{1}{h} \tr{(R_k^T P_{k+1})^T F_k} - \frac{1}{h}\tr{(I-F_k)J_d}\\
-                         & = -\frac{1}{h} \tr{(I-F_k) J_d}.
-\end{align*}
-The variational of the discrete Hamiltonian is
-\begin{align*}
-    \delta H = \frac{1}{h}\tr{\delta F_k J_d}.
-\end{align*}
-We have to rewrite $\delta H$ in terms of $\delta R_k$ and $\delta P_{k+1}$.
-
-The variation of \eqref{eqn:Pkp} is
-\begin{align*}
-    \delta  (R_{k+1}^TP_{k+1})  & = \frac{1}{h} (J_d F_k\hat \chi_k + \hat\chi_k F_k^T J_d) \\
-                                & = \frac{1}{h} ((\tr{F^T J_d} I - F^T J_d) \chi_k)^\wedge.
-\end{align*}
-On the other hand, 
-\begin{align*}
-    \delta  (R_{k+1}^TP_{k+1}) & = \delta (F_k^T R_k^T P_{k+1}) \\
-                               & = -\hat\chi_k R_{k+1}^T P_{k+1} - F_k^T \hat \eta_k R_k^T P_{k+1} + R_{k+1}^T \delta P_{k+1}
-\end{align*}
 
 

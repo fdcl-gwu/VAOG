@@ -51,19 +51,6 @@ flag_update_h = true;
 figure(1);plot(t_LGVI, J_LGVI, 'r');
 figure(2);plot(t_LGVI, errR_LGVI, 'r');
 
-p=6;
-
-[t_AGD, J_AGD, errR_AGD] = agdSO3(A,p,J,R0,T);
-figure(1);plot(t_AGD, J_AGD, 'b', 'linewidth', 2);
-figure(2);plot(t_AGD, errR_AGD, 'b','linewidth', 2);
-
-hk = 0.1;
-flag_update_h = true;
-[t_LGVI, J_LGVI, errR_LGVI] = vigdSO3(A,p,J,R0,hk,T,flag_update_h);
-
-figure(1);plot(t_LGVI, J_LGVI, 'r', 'linewidth', 2);
-figure(2);plot(t_LGVI, errR_LGVI, 'r', 'linewidth', 2);
-
 
 grid on;
 
@@ -74,5 +61,4 @@ xlabel('$t$','interpreter','latex');
 ylabel('$f-f^*$','interpreter','latex');
 
 figure(2);
-xlabel('$t$','interpreter','latex');
-ylabel('$\|I-R^TR\|$','interpreter','latex');
+

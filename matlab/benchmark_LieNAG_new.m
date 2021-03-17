@@ -3,7 +3,8 @@ function [JJ, errR, t_elapsed] = benchmark_LieNAG_new(A,p,R0,hk,N,flag_iter)
 RIC=R0;
 xiIC=zeros(3);
 
-CC=1;   % CC=C*p^2  % this needs to be tuned
+C=1;
+CC=C*p^2;  % this needs to be tuned
 gamma=1;            % this needs to be tuned
 h=hk;              % this needs to be tuned
 TotalSteps=N;
@@ -15,20 +16,23 @@ TotalSteps=N;
 % 1: NAG-SC, 2: NAG-C, 3: Bregman
 
 iter=flag_iter;
-tic
+
 
 R=RIC;
 xi=xiIC;
-loss=zeros(1,TotalSteps+1);
-deviation=zeros(1,TotalSteps+1);
-i=0;    loss(i+1)=norm(A-R,'fro')^2/2;  deviation(i+1)=norm(R'*R-eye(3),'fro');
-RR=R;    xxi=xi;
+loss=zeros(1,TotalSteps);
+deviation=zeros(1,TotalSteps);
 
+RR=R;    xxi=xi;
+RR_save=zeros(3,3,N);
+RR_save(:,:,1)=RR;
+
+tic
 hh=h/2;
 temp=expm(hh*xxi);
 RR=RR*temp;
 
-for i=1:TotalSteps
+for i=1:TotalSteps-1
     
     hh=h;       % note: i'm using the same h for all 3 methods, but Bregman actually requires smaller h, especially if t is large.
     % early stopping could be one option to sell Bregman better
@@ -45,19 +49,21 @@ for i=1:TotalSteps
     end
     
     hh=h;
-    temp=expm(hh*xxi);
+    
+    temp=expmso3(hh*vee(xxi));
     RR=RR*temp;
     
     R=RR;
     xi=xxi;
-    
-    loss(i+1)=norm(A-R,'fro')^2/2;
-    deviation(i+1)=norm(R'*R-eye(3),'fro');
+    RR_save(:,:,i+1)=RR;
 end
-
 
 t_elapsed=toc;
 
+for i=1:TotalSteps
+    loss(i)=norm(A-RR_save(:,:,i),'fro')^2/2;
+    deviation(i)=norm(RR_save(:,:,i)'*RR_save(:,:,i)-eye(3),'fro');
+end
 
 %%
 %truth

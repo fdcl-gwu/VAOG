@@ -39,13 +39,16 @@
   \tikz[baseline=(X.base)] 
     \node (X) [draw, shape=circle, inner sep=0] {#1};}
 
+    \newcommand{\TODO}[1]{\vspace{0.1cm}\newline\fbox{\parbox{0.97\columnwidth}{\textbf{TODO:} #1 }}\vspace*{0.1cm}\newline}
 
 \title{\LARGE \bf Variational Symplectic Accelerated Optimization on Lie Groups}
 
-%\author{Taeyoung Lee%\authorrefmark{1}%
-    %\thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 10051 {\tt tylee@gwu.edu}}%
-    %%\thanks{\textsuperscript{\footnotesize\ensuremath{*}}This research has been supported in part by NSF under the grant CNS-1837382.}%
-%}
+\author{%
+    Taeyoung Lee, Molei Tao, and Melvin Leok%
+    \thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 20052 {\tt tylee@gwu.edu}}%
+    \thanks{Molei Tao, }
+    \thanks{Melvin Leok, }
+}
 
 
 \newcommand{\RomanNumeralCaps}[1]{\textup{\uppercase\expandafter{\romannumeral#1}}}
@@ -73,9 +76,12 @@
 \maketitle \thispagestyle{empty} \pagestyle{empty}
 
 \begin{abstract}
+    TBA
 \end{abstract}
 
 \section{Introduction}
+TBA
+
 
 \section{Extended Lagrangian Mechanics}
 
@@ -408,7 +414,7 @@ Consider
 From \eqref{eqn:EL_Breg}, the Euler-Lagrange equations are given by
 \begin{gather}
     J\dot\Omega + \frac{p+1}{t} J\Omega + \hat\Omega J\Omega + C p^2 t^{p-2} \nabla_\L \obj(R) = 0,\label{eqn:EL_SO3}\\
-    \dot R = R\hat\Omega.
+    \dot R = R\hat\Omega. \label{eqn:R_dot}
 \end{gather}
 
 Next, we derive variational integrators. 
@@ -482,19 +488,24 @@ Consider the objective function given by
     =\frac{1}{2}(\|A\|^2_{\mathcal{F}} + 3) - \tr{A^T R},\label{eqn:obj_SO3}
 \end{align}
 where $\|\cdot\|_{\mathcal{F}}$ denotes the Frobenius norm, and $A\in\Re^{3\times 3}$.
-Minimization of the above function appears in the least-square determination of attitude from direction measurements, referred to as Wahba's problem~\cite{WahSR65}. 
+Optimization of the above function appears in the least-square determination of attitude, referred to as Wahba's problem~\cite{WahSR65}. 
 Let the singular value decomposition of $A$ be $A=USV^T$ for a diagonal $S\in\Re^{3\times 3}$ and $U,V\in\mathsf{O}(3)$.
 The optimal attitude is explicitly given by $R^* =  U \mathrm{diag}[1,1,\mathrm{det}(UV)] V^T$.
-
-Let $\delta R = R\hat\eta$ for $\eta\in\Re^3$.
-Since the derivative of $\obj$ is given by
-\begin{align*}
-    \D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta.
-\end{align*}
-Thus, the left-trivialized gradient is
+The left-trivialized gradient is 
 \begin{align*}
     \nabla_\L \obj(R)  = (A^T R - R^T A)^\vee.
 \end{align*}
+
+
+%Let $\delta R = R\hat\eta$ for $\eta\in\Re^3$.
+%Since the derivative of $\obj$ is given by
+%\begin{align*}
+    %\D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta.
+%\end{align*}
+%Thus, the left-trivialized gradient is
+%\begin{align*}
+    %\nabla_\L \obj(R)  = (A^T R - R^T A)^\vee.
+%\end{align*}
 
 \subsubsection{Order of Convergence}
 
@@ -511,22 +522,21 @@ Thus, the left-trivialized gradient is
 First, we check if the theoretical order of convergence guaranteed by \Cref{prop:EL_Breg} is achieved by the discrete Euler-Lagrange equations presented in \Cref{prop:DEL_Breg}.
 The elements of the matrix $A$ in \eqref{eqn:obj_SO3} are randomly chosen from the uniform distribution on $[0,1]$.
 The initial guess of $R_0$ is chosen such that the initial error is $0.9\pi$ in terms of the Euler-axis rotation. 
-The Lie group variational integrators (LGVI) in \Cref{prop:DEL_Breg_SO3} are simulated with fixed $J=I_{3\times 3}$, $C=1$, and $h_0 = 0.1$ for varying $p\in\{2,4,6,8\}$. 
+Lie group variational integrators (LGVI) in \Cref{prop:DEL_Breg_SO3} are simulated with fixed $J=I_{3\times 3}$, $C=1$, and $h_0 = 0.1$ for varying $p\in\{2,4,6,8\}$. 
 Since $J=I_{3\times 3}$, \eqref{eqn:muk_SO3} is replaced by \eqref{eqn:Fk_SO3}.
 The remaining implicit equation \eqref{eqn:Ek_SO3} is solved for $h_k$ via the Matlab equation solver, \texttt{lsqnonlin} with the step tolerance of $10^{-4}$.
 The initial guess for $h_k$ is provided by $h_{k-1}$. 
 
-The resulting convergence rate represented by $f-f^*$ over $t_k$ is presented in \Cref{fig:conv}.(a), where the empirical convergence rate computed by manual fitting are also marked. 
+The resulting convergence rate represented by $f-f^*$ over $t_k$ is illustrated in \Cref{fig:conv}.(a), where the empirical convergence rate computed by manual fitting are also marked. 
 It is shown that LGVI empirically achieved the order of convergence greater than the theoretical guarantee of $\mathcal{O}(t^{-p})$.
 It has been reported that naive discretization of Bregman Lagrangian systems is not able to match the theoretical convergence rate, or it might cause numerical instability~\cite{wibisono2016variational,betancourt2018symplectic}.
 These results provide us the assurance that LGVI does not suffer from those issues of discretization, and it is consistent with the continuous-time analysis. 
 
 Next, given that the step size $h_k$ is adjusted adaptively according to \eqref{eqn:Ek_SO3}, it is likely that numerical simulation with higher $p$ requires a smaller step size. 
 In fact, the average step sizes are given by $6.15\times10^{-2}$, $6.50\times 10^{-3}$, $4.89\times10^{-4}$ and $1.21\times 10^{-5}$, respectively for $p\in\{2,4,6,8\}$. 
-Roughly speaking, the average step size is reduced by the factor of $10$, when $p$ is increased by the factor of $2$.
 To examine the effects of the step size variations, the convergence with respect to the discrete time step is illustrated in \Cref{fig:conv}.(b).
-Once $R$ becomes close to its optimal value $R^*$, all of four cases of $p$ exhibit the similar order of convergence, approximately $\mathcal{O}(k^{-2.3})$.
-\textbf{TODO} \textit{Molei: would you put any relevant discussion here from the results of \cite{su2014differential}} : This is not surprising, as it has been observed that \cite{su2014differential}......
+It turns out that all of four cases of $p$ exhibit the similar order of long-term convergence, approximately $\mathcal{O}(k^{-2.3})$.
+\TODO{\textit{Molei: would you put any relevant discussion here from the results of \cite{su2014differential}} : This is not surprising, as it has been observed that \cite{su2014differential}......}
 However, the case of higher $p$ benefits from faster initial convergence, and as a result, the terminal error for $p=4$ is more than 400 times smaller than that of $p=2$.
 
 \subsubsection{Effects of Initial Step Size}
@@ -547,21 +557,64 @@ More specifically, the order is fixed to $p=4$, and the initial step size is var
 The corresponding results are illustrated at \Cref{fig:conv_h}.
 Interestingly, in \Cref{fig:conv_h}.(a), the convergence with respect to $t$ is not much affected by the initial step size $h_0$.
 Next, \Cref{fig:conv_h}.(b) presents the time-evolution of the step size, and it is shown that the step size computed by \eqref{eqn:Ek_SO3} decreases at the approximate order of $\mathcal{O}(t^{-1.6})$  for all cases. 
-This might have been caused by the fact that the forcing term in \eqref{eqn:EL_SO3} increases proportional to $t^{p-2}$. 
+This might have been caused by the fact that the forcing term in \eqref{eqn:EL_SO3} increases over time.
 Another notable feature is that after a certain period, the step sizes tend to converge. 
 More specifically, the step size initialized by $h_0=0.001$ converges to $1.8\times 10^{-4}$ when $t>10$, which is joined by the case of $h_0=0.005$ later. 
 It is expected that the next case for $h_0=0.01$ would follow the similar trend if the simulation time is increased.
 This implies a certain stability property of the extended LGVI in the step size.
-Furthermore, it is impressive that for the wide range of variations of step size presented in \Cref{fig:conv_h}.(b), the convergence in \Cref{fig:conv_h}.(a) are consistent, which suggests the robustness of the LGVI against the choice of the step size. 
+Furthermore, it is impressive that for the wide range of variations of step sizes presented in \Cref{fig:conv_h}.(b), the convergence in \Cref{fig:conv_h}.(a) are fairly consistent, which suggests the robustness of the LGVI against the choice of the step size. 
 
-\subsubsection{Comparison with Other Discretization of Bregman Euler-Lagrange Equation}
+\subsubsection{Comparison with Other Discretizations of Bregman Euler-Lagrange Equation}
+
+\begin{figure}
+    \centerline{
+        \subfigure[convergence with respect to $t$]{\includegraphics[width=0.8\columnwidth]{comp_3a}}
+    }
+    \centerline{
+        \subfigure[orthogonality error of $R_k$]{\includegraphics[width=0.8\columnwidth]{comp_3b}}
+    }
+    \caption{Comparison with other discretization schemes for Bregman Euler-Lagrange equation}\label{fig:comp_disc}
+\end{figure}
+
+Next, we compare LGVI with other discretization schemes applied to \eqref{eqn:EL_SO3} and \eqref{eqn:R_dot}.
+Three methods are considered, namely a splitting technique (SPLT)~\cite{tao2020variational}, a 4-th order fixed-step Runge-Kutta method (RK4), and a variable stepsize Runge-Kutta method (RK45) implemented by the Matlab \texttt{ode45} function with the tolerance of $10^{-8}$.
+\TODO{ Molei: would you put a short description of the splitting method here.}
+The goal of this comparison is not to claim that a certain method is superior than others.
+But, it is to identify the numerical properties of LGVI compared with others. 
+Having stated that, LGVI has the inherent drawback of implicit techniques.
+Partially due to the fact that \eqref{eqn:Ek_SO3} is solved by a general purpose nonlinear equation solver, without developing any numerical scheme specialized to it, LGVI is substantially slower than the other explicit methods to the extent that the comparison is not meaningful. 
+
+Instead, for the purpose of more interesting comparison, we exploit the property of LGVI providing consistent results for a wide range of step sizes, and we only utilize \eqref{eqn:muk_SO3} and \eqref{eqn:mukp_SO3} with a fixed prescribed step size. 
+The resulting scheme, denoted by ELGVI, is explicit as shown in \eqref{eqn:Fk_SO3}.
+Overall ELGVI is quite comparable with SPLT, but it benefits from a bit faster initial convergence, especially when $p$ is larger and $h$ is smaller. 
+One particular case for $p=6$ and $h=0.001$ is illustrated in \Cref{fig:comp_disc}.(a).
+With regard to RK4 and RK45, their convergence is almost identical to ELGVI, but as presented in \Cref{fig:comp_disc}.(b), those methods do not preserve the orthogonality of the rotation matrix, which is problematic.  
+Whereas, both of LGVI and SPLT conserve the structure of rotation matrices. 
+Next, the computation time with Intel Core i7 3.2GHz, averaged for 10 executions, are 0.0727, 0.0258, 0.3847, and 1.1476 seconds for ELGVI, SPLT, RK4, and RK45, respectively. 
+It is expected that RK4 requires more computation time as the gradient should be evaluated four times per a step, and it seems that the time adaptive algorithm of RK45 requries more frequent evaluations of the gradient. 
+
+\subsubsection{Comparison with Other Optimization Schemes on Lie Groups}
+
+Finally, we compare ELGVI with other optimization schemes on Lie groups. 
+In particular, we consider variational accelerated methods based on the operating spliting, referred to as Lie-NAG-SC and Lie-NAG-C~\cite{tao2020variational}, which are conformally symplectic and group-structure preserving. 
+\TODO{Molei: feel free add more descriptions about Lie-NAG here.}
+Four cases are considered as marked in \Cref{fig:comp_accel} for varying $p$ and $h$.
+Compared with Lie-NAG-C, ELGVI exhibits faster long-term convergence rates of higher order.
+On the other hand, Lie-NAG-SC demonstrates convergence rates beyond the polynomial order of $\mathcal{O}(t^{-p})$. 
+ELGVI may benefit from early stopping if moderate accuracy is acceptable, as they enjoy the best initial convergence. 
+\TODO{Molei: is there any explanation for the convergence of Lie-NAG-SC?}
+
+
+\begin{figure}
+    \centerline{
+        \includegraphics[width=0.8\columnwidth]{comp_4}
+    }
+    \caption{Comparison with other accelerated optimization schemes on Lie groups}\label{fig:comp_accel}
+\end{figure}
 
 
 
-
-
-
-\bibliography{/Users/tylee/Documents/BibMaster17,/Users/tylee/Documents/tylee}
+\bibliography{CDC21}
 \bibliographystyle{IEEEtran}
 
 \end{document}

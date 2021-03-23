@@ -37,10 +37,9 @@ keypoints_proj = keypoints_proj([2 1],:);
 img = imread('data/000000.png');
 imshow(img);
 hold on;
+plot([keypoints(2,:); keypoints_proj(2,:)], [keypoints(1,:); keypoints_proj(1,:)]);
 scatter(keypoints(2,:), keypoints(1,:),'r+', 'LineWidth',2);
-hold on;
-scatter(keypoints_proj(2,:), keypoints_proj(1,:),'b+', 'LineWidth',2);
-plot([keypoints(2,:); keypoints_proj(2,:)], [keypoints(1,:); keypoints_proj(1,:)],'b:');
+scatter(keypoints_proj(2,:), keypoints_proj(1,:),'y+', 'LineWidth',2);
 
 print('comp_6b','-depsc');
 
@@ -57,8 +56,8 @@ imshow(img);
 hold on;
 scatter(keypoints(2,:), keypoints(1,:),'r+', 'LineWidth',2);
 hold on;
-scatter(keypoints_proj(2,:), keypoints_proj(1,:),'b+', 'LineWidth',2);
-plot([keypoints(2,:); keypoints_proj(2,:)], [keypoints(1,:); keypoints_proj(1,:)],'w');
+scatter(keypoints_proj(2,:), keypoints_proj(1,:),'y+', 'LineWidth',2);
+plot([keypoints(2,:); keypoints_proj(2,:)], [keypoints(1,:); keypoints_proj(1,:)]);
 
 
 print('comp_6c','-depsc');

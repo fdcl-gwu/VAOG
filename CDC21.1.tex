@@ -635,6 +635,43 @@ On the other hand, Lie-NAG-SC demonstrates exponential decay of the objective fu
 
 \subsection{Optimization on $\SO\times \Re^3$}
 
+Next, we present an optimization problem on $\SO\times\Re^3$ to estimate the position and the attitude of a camera using a single frame of the KITTI Vision Benchmark dataset~\cite{Geiger2013IJRR}.
+More specifically, for $N=516$ distinct features, their 2D pixel coordinates in the image plane, and the actual 3D location in the world coordinates are given by $p^i\in\Re^3$ and $P^i\in\Re^4$ for $1\leq i\leq N$ as homogeneous coordinates. 
+Assuming that the camera calibration matrix $K\in\Re^{3\times 3}$ is also known, we wish to estimate the pose $(R,x)\in\SO\times \Re^3$ of the camera.  
+
+This is formulated as an optimization problem to minimize the reprojection error, which is the error between the actual pixel location of the features and the features projected to the image plane by the estimate of $(R,x)$~\cite{ma2012invitation}.
+For example, let $\tilde p^i\in\Re^3$ be the homogeneous coordinates of $P^i$ projected by $(R,x)$. 
+From the perspective camera model, 
+\begin{align*}
+    \lambda \tilde p^i = K[R, x]P^i,
+\end{align*}
+for $\lambda >0$.
+The corresponding reprojected pixel is determined by the dehomogenization  of $\tilde p^i$, namely $H^{-1}(\tilde p^i)\in\Re^2$ corresponding to the first two elements of $\tilde p^i$ divided by the last element. 
+The objective function is the sum of the reprojection error, 
+\begin{align}
+    \obj (R,x) =  \sum_{i=1}^N \| H^{-1}(p^i) - H^{-1}(\tilde p^i)\|^2.\label{eqn:obj_SE3}
+\end{align}
+\Cref{fig:comp_6} presents the optimization results by ELGVI, which are comparable to the benchmark examples presented for $\SO$. 
+However, the terminal phase is relatively noisy, partially because the gradients of \eqref{eqn:obj_SE3} are evaluated numerically with a finite-difference rule. 
+\Cref{fig:KITTI} illustrates the reprojected features before and after the optimization. 
+
+\begin{figure}
+    \centerline{
+        \includegraphics[width=0.8\columnwidth]{comp_6a}
+    }
+    \caption{Optimization on $\SO\times\Re^3$: convergence with respect to $k$}\label{fig:comp_6}
+\end{figure}
+
+\begin{figure}
+    \centerline{
+        \subfigure[Initial guess $(R_0,x_0)$]{\includegraphics[width=0.9\columnwidth]{comp_6b.eps}}
+    }
+    \centerline{
+        \subfigure[Optimized $(R^*,x^*)$]{\includegraphics[width=0.9\columnwidth]{comp_6c}}
+    }
+    \caption{Reprojection error: the red $+$ markers denote the key points detected, and the yellow $+$ markers represent the key points projected by the estimated pose. The paired features are connected by solid lines. }\label{fig:KITTI}
+\end{figure}
+
 \section{Conclusions and Future Work}
 In this paper, we derived a Lie group variational integrator for the Bregman Lagrangian dynamics on Lie groups, which yield an accelerated optimization methods on Lie groups. This was illustrated on Wahba's attitude estimation problem, viewed as an optimization problem on the rotation group.
 

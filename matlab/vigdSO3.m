@@ -7,7 +7,7 @@ R_opt = U*V';
 JJ_opt = obj(R_opt,A);
 Jd=trace(J)/2*eye(3)-J;%nonstandard inertia matrix
 
-options = optimoptions(@lsqnonlin,'StepTolerance', 1e-4, 'Display', 'off');
+options = optimoptions(@lsqnonlin,'StepTolerance', 1e-12, 'Display', 'off');
 
 C=1;
 %%
@@ -30,9 +30,9 @@ k = 1;
 
 while 1
     
-    %     if flag_update_h
-    %         [hk, res] = lsqnonlin(@(hk) err_FLdm(hk, t(k), Pi(:,k), R(:,:,k), E(k), JJ(k), M(:,k), p, C, Jd, A), hk, 0, [], options);
-    %     end
+    if flag_update_h
+        [hk, res] = lsqnonlin(@(hk) err_FLdm(hk, t(k), Pi(:,k), R(:,:,k), E(k), JJ(k), M(:,k), p, C, Jd, A), hk, 0, [], options);
+    end
     t(k+1) = t(k) + hk;
     tkkp= (t(k)+t(k+1))/2;
     g = (Pi(:,k) + hk/2*C*p*t(k)^(2*p-1)*M(:,k))*hk*p/tkkp^(p+1);
@@ -43,12 +43,12 @@ while 1
     Pi(:,k+1) = Fk'*Pi(:,k) + hk/2*C*p*t(k)^(2*p-1)*Fk'*M(:,k) + hk/2*C*p*t(k+1)^(2*p-1)*M(:,k+1);
     
     
-    %     if flag_update_h
-    %         JJ(k+1) = obj(R(:,:,k+1),A);
-    %         E(k+1) = (-(p+1)*tkkp^p/2/hk/p + tkkp^(p+1)/hk^2/p)*trace((eye(3)-Fk)*Jd)...
-    %             +1/2*C*p*t(k)^(2*p-1)*JJ(k) + 1/2*C*p*t(k+1)^(2*p-1)*JJ(k+1) ...
-    %             +hk/2*C*p*(2*p-1)*t(k+1)^(2*p-2)*JJ(k+1);
-    %     end
+    if flag_update_h
+        JJ(k+1) = obj(R(:,:,k+1),A);
+        E(k+1) = (-(p+1)*tkkp^p/2/hk/p + tkkp^(p+1)/hk^2/p)*trace((eye(3)-Fk)*Jd)...
+            +1/2*C*p*t(k)^(2*p-1)*JJ(k) + 1/2*C*p*t(k+1)^(2*p-1)*JJ(k+1) ...
+            +hk/2*C*p*(2*p-1)*t(k+1)^(2*p-2)*JJ(k+1);
+    end
     
     k=k+1;
     
@@ -105,7 +105,23 @@ J = tmp(:)'*tmp(:)/2;
 end
 
 function M = grad(R,A)
+% this actually computes the negative gradient
 M=vee(R'*A-A'*R);
 end
+
+function M = grad_num(R,A)
+% this actually computes the negative gradient
+eps = 1e-8;
+
+II=eye(3);
+M=zeros(3,1);
+for i=1:3
+    M(i)=(obj(R*expmso3(eps*II(:,i)),A)-obj(R,A))/eps;
+end
+M=-M;
+
+end
+
+
 
 

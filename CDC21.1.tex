@@ -41,13 +41,19 @@
 
     \newcommand{\TODO}[1]{\vspace{0.1cm}\newline\fbox{\parbox{0.97\columnwidth}{\textbf{TODO:} #1 }}\vspace*{0.1cm}\newline}
 
+\newcommand{\tao}[1]{[{\color{blue} Tao: #1}]}
+%\newcommand{\tao}[1]{}
+\newcommand{\leok}[1]{[{\color{orange} Leok: #1}]}
+%\newcommand{\leok}[1]{}
+
 \title{\LARGE \bf Variational Symplectic Accelerated Optimization on Lie Groups}
 
 \author{%
     Taeyoung Lee, Molei Tao, and Melvin Leok%
-    \thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 20052 {\tt tylee@gwu.edu}}%
-    \thanks{Molei Tao, }
-    \thanks{Melvin Leok, }
+    \thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 20052. {\tt tylee@gwu.edu}}%
+    \thanks{Molei Tao, Mathematics, Georgia Institute of Technology, Atlanta, GA 30332. {\tt mtao@gatech.edu}}
+    \thanks{Melvin Leok, Mathematics, University of California--San Diego, La Jolla, CA 92093. {\tt mleok@ucsd.edu}}
+    %\thanks{The research was partially supported by NSF under the grants CNS-1837382, CMMI-1760928, DMS-1813635, IIP-1747760, and by AFOSR FA9550-18-1-0288 and DoD 13106725.}
 }
 
 
@@ -70,40 +76,50 @@
 %\color{white}\pagecolor{black}
 
 \begin{document}
-\allowdisplaybreaks
 
+\allowdisplaybreaks
 
 \maketitle \thispagestyle{empty} \pagestyle{empty}
 
 \begin{abstract}
-    TBA
+There has been significant interest in generalizations of the Nesterov accelerated gradient descent algorithm due to its superior guaranteed performance compared to the standard gradient descent algorithm, and its applicability to large scale optimization problems arising in deep learning.
+A particularly fruitful approach is based on numerical discretizations of differential equations that describe the continuous time limit of the Nesterov algorithm, and a generalization involving time-dependent Bregman Lagrangian and Hamiltonian dynamics that converges at an arbitrarily fast rate to the minimum.
+We develop a Lie group variational discretization based on an extended path space formulation of the Bregman Lagrangian on Lie groups, and consider its application to an optimization problem on the rotation group arising from Wahba's problem of attitude estimation.
 \end{abstract}
 
 \section{Introduction}
-TBA
 
+Nesterov's accelerated gradient descent algorithm~\cite{Nes83} was  introduced in 1983, and it was shown to converge at $\mathcal{O}(1/k^2)$ to the minimum of a convex objective function, which is faster than the $\mathcal{O}(1/k)$ convergence rate of standard gradient descent methods.
+It was shown in~\cite{nesterov2003introductory} that this rate of convergence is optimal for the class of first-order gradient methods.
+This improved rate of convergence over the standard gradient method is referred to as acceleration, and there is a great interest in developing systematic approaches to the construction of efficient accelerated optimization algorithms, due to the potential applications to deep learning.
+
+A continuous time limit of the Nesterov algorithm was studied in~\cite{su2016differential}, whose flow converges to the minimum at $\mathcal{O}(1/t^2)$, and this was generalized in~\cite{wibisono2016variational} using a time-dependent Bregman Lagrangian and Hamiltonian to flows that converge at $\mathcal{O}(1/t^p)$, for arbitrary $p\geq 2$.
+It was demonstrated in~\cite{ZhMoSrJa2018} that direct Runge--Kutta discretization of a particular second-order differential equation can yield accelerated optimization algorithms, and there have been numerous attempts to construct accelerated optimization algorithms using geometric structure-preserving discretizations of the Bregman Lagrangian and Hamiltonian.
+
+A natural class of such geometric numerical integrators~\cite{HaLuWa2006} for discretizing such a dynamical system are Lagrangian variational integrators~\cite{MarWesAN01} and Hamiltonian variational integrators~\cite{LeZh2009}, which are based on a discrete analogue of Hamilton's variational principle, and yields methods that are automatically symplectic, satisfy a discrete Noether's theorem that relates symmetries with momentum conservation properties, and exhibit excellent exponentially long-time energy stability.
+One complication is that such methods are typically developed for autonomous Lagrangian and Hamiltonian systems, and one approach to addressing this involves the use of the Poincar\'e transform based time-adaptive Hamiltonian variational integrators~\cite{DuScLe2021}.
+
+In this paper, we develop an extended path space formulation of discrete Lagrangian mechanics on Lie groups, which yield an extended Lie group variational integrator that can be applied to a Lie group generalization of the Bregman Lagrangian.
+We demonstrate the application of this method to Wahba's problem of attitude estimation, viewed as an optimization problem on the rotation group.
 
 \section{Extended Lagrangian Mechanics}
 
 This section presents Lagrangian mechanics for non-autonomous systems on a Lie group. 
 It is referred to as \textit{extended} Lagrangian mechanics as the variational principle is extended to include reparamerization of time~\cite{MarWesAN01}.
-These are developed in both of continuous-time and discrete-time formulations, and the latter is often referred to as \textit{Lie group variational integrator}~\cite{LeeLeoCMAME07}.
-They will be utilized in accelerated optimization with Bregman Lagrangian in the next section.
+These are developed in both of continuous-time and discrete-time formulations. The latter yields a \textit{Lie group variational integrator}~\cite{LeeLeoCMAME07}, which will be applied to accelerated optimization using the Bregman Lagrangian in the next section.
 
 Consider  an $n$-dimensional Lie group $\G$.
-Let $\g$ be the lie algebra, or the tangent space at the identity, i.e., $\g = \T_e\G$.
-The tangent bundle of the group is identified with $\T\G \simeq \G\times \g$ via left trivialization.
+Let $\g$ be the associated Lie algebra, or the tangent space at the identity, i.e., $\g = \T_e\G$.
+Consider a left trivialization of the tangent bundle of the group $\T\G \simeq \G\times \g$, $(g,\dot g)\mapsto (g, L_{g^{-1}}\dot g)\equiv(g,\xi)$
 More specifically, let $\L:\G\times\G\rightarrow\G$ be the left action defined such that $\L_g h = gh$ for $g,h\in\G$.
-For any $v\in\T_g\G$, there exists $\xi\in\g$ such that $v =\T_e\L_g \xi=g\xi$.
-Utilizing this, the kinematics equation can be written as
+Then the left trivialization is a map $(g,\dot g)\mapsto (g, L_{g^{-1}}\dot g)\equiv(g,\xi)$, where $\xi\in\g$, and the kinematics equation can be written as
 \begin{align}
     \dot g = g\xi. \label{eqn:g_dot}
 \end{align}
-Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which is extended to the corresponding inner product on $\T_g\G$ through the left trivialization.
+Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which induces a corresponding inner product on $\T_g\G$ through the left trivialization.
 For any $v,w\in\T_g\G$, we have $\pair{w,v}_{\T_g\G} = \pair{ \T_g \L_{g^{-1}} v, \T_g \L_{g^{-1}} w}_\g$. 
-Considering the inner product as a pairing between a tangent vector and a cotangent vector, we identify $\g\simeq \g^*$ and $\T_g \G \simeq \T^*_g \G\simeq G\times \g^*$.
-Throughout this paper, the pairing is also denoted by $\cdot$.
-Let $\mathbf{J}:\g\rightarrow\g^*$ be defined such that $\pair{\mathbf{J}(\xi),\zeta}$ is positive-definite and symmetric as a bilinear form of $\xi,\zeta\in\g$.
+Given the inner product, we identify $\g\simeq \g^*$ and $\T_g \G \simeq \T^*_g \G\simeq G\times \g^*$ via the Riesz representation. Throughout this paper, the pairing is also denoted by the dot product $\cdot$.
+Let $\mathbf{J}:\g\rightarrow\g^*$ be chosen such that $\pair{\mathbf{J}(\xi),\zeta}$ is positive-definite and symmetric as a bilinear form of $\xi,\zeta\in\g$.
 Define the metric $\met{\cdot,\cdot}:\g\times\g\rightarrow\Re$ with $\met{\xi,\zeta} = \pair{\mathbf{J}(\xi),\zeta}$.
 This serves as a left-invariant Riemmanian metric on $\G$.
 Also $\|\xi\|^2 = \met{\xi,\xi}$ for any $\xi\in\g$.
@@ -111,46 +127,45 @@ The adjoint operator is denoted by $\Ad_g:\g\rightarrow\g$, and the ad operator 
 
 \subsection{Continuous-Time Extended Lagrangian Mechanics}
 
-Consider a non-autonomous Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ on the \textit{extended state space} including the space of time.
+Consider a non-autonomous (left-trivialized) Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ on the \textit{extended state space} that includes  time.
 The corresponding \textit{extended path space} is composed of the curves $(c_t(a),c_g(a))$ on $\Re\times \G$ parameterized by $a>0$.
 To ensure that the reparameterized time increases monotonically, we require $c'_t(a) > 0$. 
-For a given interval of time $[t_0,t_f]$, the equivalent interval $[a_0,a_f]$ of $a$ is chosen such that $t_0=c_t(a_0)$ and $t_f=c_t(a_f)$.
-For any path $(c_t(a),c_g(a))$ over $[a_0,a_f]$ in the extended space, the \textit{associated curve} is defined by
+For a given time interval $[t_0,t_f]$, the corresponding interval $[a_0,a_f]$ for $a$ is chosen such that $t_0=c_t(a_0)$ and $t_f=c_t(a_f)$.
+For any path $(c_t(a),c_g(a))$ over $[a_0,a_f]$ in the extended space, the \textit{associated curve} is 
 \begin{align}
     g(t) = c_g(c_t^{-1}(t)),\label{eqn:ac}
 \end{align}
-on $\G$ over $[t_0,t_f]$.
+on $\G$ over the time interval $[t_0,t_f]$.
 For a given extended path, define the \textit{extended action integral} as
 \begin{align}
     \mathfrak{G}(c_t,c_g) = \int_{t_0}^{t_f} L(t,g,\xi)\bigg|_{g(t) = c_g(c_t^{-1}(t))} dt,\label{eqn:AI}
 \end{align}
-where the Lagrangian is evaluated through the associated curve \eqref{eqn:ac}.
+where the Lagrangian is evaluated on the associated curve \eqref{eqn:ac}, and $\xi$ satisfies the kinematics equation  \eqref{eqn:g_dot}.
 
-Taking the variation of $\mathfrak{G}$ with respect to the extended path, we obtain the Euler-Lagrange equation according to the variational principle in the extended phase space. 
-As discussed in~\cite[Sec. 4.2.2]{MarWesAN01}, the resulting Euler-Lagrangian equations depends only on the associated curve \eqref{eqn:ac}, not on the extended path $(c_t,c_g)$ itself, and the variational principle does not dictate how the curve should be reparameterized. 
+Taking the variation of $\mathfrak{G}$ with respect to the extended path, we obtain the Euler--Lagrange equation according to the variational principle in the extended phase space. 
+As discussed in~\cite[Sec. 4.2.2]{MarWesAN01}, the resulting Euler--Lagrange equations depends only on the associated curve \eqref{eqn:ac}, not on the extended path $(c_t,c_g)$ itself, and the variational principle does not dictate how the curve should be reparameterized. 
 
-Further, the resulting Euler-Lagrangian equation share the exactly same form as (unextended) Lagrangian mechanics for the associated curve. 
-As such, the Euler-Lagrange equation for non-autonomous Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ can be written as
+Further, the resulting Euler--Lagrange equation share the exactly same form as (unextended) Lagrangian mechanics for the associated curve. 
+As such, the Euler--Lagrange equation for non-autonomous Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ can be written as
 \begin{align}
     \frac{d}{dt}\!\parenth{\deriv{L}{\xi}} - \ad^*_\xi \deriv{L}{\xi} - \T^*_e \L_g (\D_g L) = 0, \label{eqn:EL}
 \end{align}
-where $\D_g$ stands for the differential with respect to $g$ (see~\cite[Sec. 8.6.3]{LeeLeo17} for derivation of the above equation for autonomous Lagrangian).
+where $\D_g$ stands for the differential with respect to $g$ (see~\cite[Sec. 8.6.3]{LeeLeo17} for derivation of the above equation for autonomous Lagrangians).
 
-Introducing the Legendre transform $\mu = \deriv{L}{\xi} \in\g^*$, and assuming that it is invertible, the Euler-Lagrange equation can be rewritten into
+Introducing the Legendre transform $\mu = \deriv{L}{\xi} \in\g^*$, and assuming that it is invertible, the Euler--Lagrange equation can be rewritten as
 \begin{align}
     \dot \mu - \ad^*_{\xi} \mu - \T^*_e \L_g (\D_g L) = 0. \label{eqn:HE}
 \end{align}
 
 \subsection{Extended Lie Group Variational Integrator}
 
-Variational integrators are geometric numerical integration schemes interpreted as discrete-time mechanics, and they are constructed by discretizing the variational principle for Lagrangian mechanics~\cite{MarWesAN01}.
-The solutions of variational integrators are symplectic and they preserve any symmetry according to the discrete analogue of Nother's theorem.
-As such, they provide long-term structural stability in numerical simulation. 
-For Lagrangian mechanics evolving on a Lie group, the corresponding Lie group variational integrators have been presented in~\cite{Leo04,Lee08,LeeLeoCMAME07}.
+Variational integrators are geometric numerical integration schemes that can be viewed as discrete-time mechanics derived from a discretization of the variational principle for Lagrangian mechanics~\cite{MarWesAN01}.
+The discrete-time flows of variational integrators are symplectic and they exhibit a discrete analogue of Noether's theorem, which means that a symmetry of the discrete system induces an associated momentum conservation law. This provides long-term structural stability in the resulting numerical simulations. 
+For Lagrangian mechanics evolving on a Lie group, the corresponding Lie group variational integrators were developed in~\cite{LeeLeoCMAME07,Leo04,Lee08}.
 
-Here, we develop extended Lie group variational integrators by discretizing the extended variational principle presented above, by following the general framework of~\cite{MarWesAN01}.
+Here, we develop extended Lie group variational integrators by discretizing the extended variational principle presented above, following the general framework of~\cite{MarWesAN01}.
 The \textit{extended discrete path space} is composed of the sequence $\{(t_k, g_k)\}_{k=0}^N$ on $\Re\times\G$, satisfying $t_{k+1}>t_k$.
-Next, the discrete kinematics equation is chosen as
+Next, the discrete kinematics equation is chosen to be
 \begin{align}
     g_{k+1} = g_k f_k, \label{eqn:gkp}
 \end{align}
@@ -160,16 +175,16 @@ The discrete Lagrangian $L_d(t_k, t_{k+1}, g_k, f_k): \Re\times\Re\times\G\times
     \mathfrak{G}_d(\{(t_k, g_k)\}_{k=0}^N) = \sum_{k=0}^{N-1} L_d(t_k, t_{k+1}, g_k, f_k), \label{eqn:Gd}
 \end{align}
 approximates \eqref{eqn:AI}. 
-Now the discrete Euler-Lagrange equations can be developed according to the variational principle as follows.
+Now the discrete Euler--Lagrange equations can be developed according to the variational principle as follows.
 
 \begin{prop}
-    The discrete path of $\{(g_k,f_k)\}_{k=0}^{N-1}$ extremizing \eqref{eqn:Gd} with fixed end point satisfies the following discrete Euler-Lagrange equation, or the extended Lie group variational integrator.
+    The discrete path $\{(g_k,f_k)\}_{k=0}^{N-1}$ that extremizes the discrete action sum \eqref{eqn:Gd} subject to fixed endpoints satisfies the following discrete Euler--Lagrange equation,
     \begin{gather}
         \T^*_e\L_{g_k}(\D_{g_k} L_{d_k})- \Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} L_{d_k}))\nonumber \\
         + \T^*_e\L_{f_{k-1}}(\D_{f_{k-1}} L_{d_{k-1}}) =0,\label{eqn:DEL}\\
         \D_{t_k} L_{d_{k-1}} + \D_{t_k} L_{d_k} = 0, \label{eqn:DELt}
     \end{gather}
-    along with \eqref{eqn:gkp}.
+    which together with the discrete kinematic equation \eqref{eqn:gkp} defines an extended Lie group variational integrator.
 \end{prop}
 \begin{proof}
     From \eqref{eqn:gkp},
@@ -194,7 +209,7 @@ Now the discrete Euler-Lagrange equations can be developed according to the vari
     \end{align*}
     Since the endpoints are fixed, we have $\eta_0=0$ and $\delta t_0 = 0$.
     Therefore in the above expression, the range of summation for the terms paired with $\eta_k$ and $\delta t_k$ can be reduced to $1\leq k\leq N-1$. 
-    Also, using $\eta_N=0$ and $\delta t_N=0$, for the other terms paired with $\eta_{k+1}$ and $\delta t_{k+1}$, the subscript can be reduced by one for the summation over the same range.
+    Also, using $\eta_N=0$ and $\delta t_N=0$, for the other terms paired with $\eta_{k+1}$ and $\delta t_{k+1}$, the terms can be reindexed by reducing the subscripts by one and summed over the same range.
     Therefore, 
     \begin{align*}
         \delta \mathfrak{G}_d  = \sum_{k=1}^{N-1}
@@ -204,12 +219,12 @@ Now the discrete Euler-Lagrange equations can be developed according to the vari
     \end{align*}
     According to the variational principle, $\delta\mathfrak{G}_d = 0$ for any $\eta_k$ and $\delta t_k$, which yields \eqref{eqn:DEL} and \eqref{eqn:DELt}.
 \end{proof}
-The most notable difference against the continuous-time counterpart is that in addition to the discrete Euler-Lagrange equation \eqref{eqn:DEL}, we have the additional equation \eqref{eqn:DELt} for the evolution of the discrete time. 
+The most notable difference compared to the continuous-time counterpart is that in addition to the discrete Euler--Lagrange equation \eqref{eqn:DEL}, we have the additional equation \eqref{eqn:DELt} for the evolution of the discrete time. 
 This is because the discrete action sum $\mathfrak{G}_d$ depends on the complete extended path $\{(t_k,g_k)\}_{k=1}^N$.
-Whereas the action $\mathfrak{G}$ in the continuous-time formulation is a function of the associated curve \eqref{eqn:ac} only.
+Whereas the continuous-time action $\mathfrak{G}$ is only a function of the associated curve \eqref{eqn:ac}.
 
-The evolution of the discrete time is associated with the energy.
-Let the discrete energies be
+The discrete Euler--Lagrange equation for the discrete time~\eqref{eqn:DELt} is associated with the energy.
+Define the discrete energies to be
 \begin{align}
     E^+_k &= - \D_{t_{k+1}} L_{d_k},\label{eqn:Ep}\\
     E^-_k &= \D_{t_{k}} L_{d_k}.\label{eqn:Em}
@@ -218,13 +233,13 @@ Then, \eqref{eqn:DELt} can be rewritten as
 \begin{align}
     E^+_{k-1} = E^-_k,\label{eqn:DELE}
 \end{align}
-which reflects the evolution of the discrete energy.
+which reflects the evolution of the discrete energy. This connection should come as no surprise, as the Hamiltonian is the conjugate momentum associated with time.
 
 In case the discrete Lagrangian is time-invariant so that $L_d(t_k,t_{k+1},g_k,f_k) =  L_d(t_k+s,t_{k+1}+s,g_k,f_k)$ for any $s$, 
 we have $\D_{t_k}L_{d_k} + \D_{t_{k+1}}L_{d_k}=0$, or equivalently $E^-_k = E^+_k$. 
-Combined with \eqref{eqn:DELE}, this yields $E_{k-1}^+ = E_k^+$ and $E_{k-1}^-=E_k^-$, which shows the conservation of discrete energy for autonomous Lagrangian systems. 
+Combined with \eqref{eqn:DELE}, this yields $E_{k-1}^+ = E_k^+$ and $E_{k-1}^-=E_k^-$, which shows the conservation of discrete energy for autonomous Lagrangian systems. This yields an example of a  symplectic-energy-momentum integrator~\cite{KaMaOr1999}, and it does not violate the theorem of Ge and Marsden~\cite{GeMa1988} as it is not a fixed timestep method. Rather, \eqref{eqn:DELE} prescribes the timestep to be taken.
 
-To implement \eqref{eqn:DEL} and \eqref{eqn:DELt} as a numerical integrator, it is more convenient to introduce the \textit{extended discrete Legendre transform}, $\mathbb{F}^\pm L_{d_k}: \Re\times\Re \times \G \times \G \rightarrow \Re\times \Re\times\G\times\g^*$ as
+To implement \eqref{eqn:DEL} and \eqref{eqn:DELt} as a numerical integrator, it is more convenient to introduce the \textit{extended discrete Legendre transforms}, $\mathbb{F}^\pm L_{d_k}: \Re\times\Re \times \G \times \G \rightarrow \Re\times \Re\times\G\times\g^*$ as
 \begin{align}
     \mathbb{F}^+ L_{d_k} (t_k,t_{k+1}, g_k,f_k) & = (t_{k+1}, E_{k+1}, g_{k+1}, \mu_{k+1}),\\
     \mathbb{F}^- L_{d_k} (t_k,t_{k+1}, g_k,f_k) & = (t_k, E_k, g_{k}, \mu_{k}).
@@ -236,12 +251,12 @@ where
 \end{align}
 and $E_{k+1}$ and $E_k$ are given by \eqref{eqn:Ep} and \eqref{eqn:Em}, respectively. 
 
-The resulting discrete flow map is constructed by $\mathbb{F}^+L_{d_k} \circ (\mathbb{F}L_{d_k})^{-1}$. 
+The resulting discrete flow map is defined by $\mathbb{F}^+L_{d_k} \circ (\mathbb{F}L_{d_k})^{-1}$. 
 More specifically, for given $(t_k, E_k, g_k, \mu_k)$, \eqref{eqn:Em} and \eqref{eqn:muk} are solved together for $t_{k+1},f_k$ with the constraint $t_{k+1}>t_k$.
 Then, $(E_{k+1}, g_{k+1},\mu_{k+1})$ are computed by \eqref{eqn:Ep}, \eqref{eqn:gkp}, and \eqref{eqn:mukp}, respectively.
 This yields the discrete flow map $(t_k, E_k, g_k, \mu_k)\rightarrow(t_{k+1}, E_{k+1}, g_{k+1}, \mu_{k+1})$ consistent with \eqref{eqn:DEL} and \eqref{eqn:DELt}.
-While the flow map is described by $E$ for convenience, the initial value of $E_0$ is often selected by choosing the initial timestep $h_0$ and calculating the corresponding value of $E_0$ through \eqref{eqn:Em}.
-This inherits the desirable properties of variational integrators, and the group structure is also preserved through \eqref{eqn:gkp}.
+While the flow map is expressed in terms of $E$ for convenience, the initial value of $E_0$ is often selected by choosing the initial timestep $h_0$ and calculating the corresponding value of $E_0$ through \eqref{eqn:Em}.
+This inherits the desirable properties of variational integrators, and the group structure is also preserved through \eqref{eqn:gkp}, in combination with an ansatz $f_k=\exp(h\xi_k)$, where $\xi_k\in\g$ in order to ensure that $f_k\in\G$.
 
 \section{Bregman Lagrangian Systems on $\G$}\label{sec:Breg}
 
@@ -252,9 +267,9 @@ We focus on the optimization problem:
 \begin{align}
     \min_{g\in\G} \obj (g).
 \end{align}
-Variational accelerated optimization scheme for the above problem has been presented in~\cite{tao2020variational}, where the Nesterov accelerated gradient (NAG) descent on a finite-dimensional vector space is intrinsically generalized to a Lie group. 
-In this section, we consider an intrinsic formulation of the Bregman Lagrangian dynamics~\cite{wibisono2016variational}, which encloses a large class of accelerated optimization scheme, including NAG.
-More importantly, it guarantees polynomial convergence rates up to an arbitrary order.
+A variational accelerated optimization scheme for the above problem was developed in~\cite{tao2020variational}, where the Nesterov accelerated gradient (NAG) descent on a finite-dimensional vector space was intrinsically generalized to a Lie group. 
+In this section, we introduce an intrinsic formulation of Bregman Lagrangian dynamics~\cite{wibisono2016variational}, which encompasses a large class of accelerated optimization scheme, including NAG.
+More importantly, the continuous dynamics guarantees polynomial convergence rates up to an arbitrary order (note that this is not preserved under discretization; however, in practice, the numerical performance can be tuned; see Sec.\ref{sec:experimentA}, \cite{su2016differential} and also \cite{attouch2018fast}).
 
 \subsection{Continuous-Time Bregman Dynamics}
 
@@ -263,18 +278,18 @@ The Bregman Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow$ is given by
     L(t,g,\xi) = \frac{t^{\lambda p+1}}{2p} \|\xi\|^2 - C p t^{(\lambda+1)p-1} \obj (g),\label{eqn:BL}
 \end{align}
 for $p, C>0$, and $\lambda\geq 1$.
-When applied to $\G=\Re^n$ with $\lambda=1$, this is a special case of Bregman Lagrangian~\cite{wibisono2016variational}, and it recovers the continuous-time limit of Nesterov's accelerated minor descent with $p=2$~\cite{nesterov2005smooth}.
+When $\G=\Re^n$ and $\lambda=1$, this recovers the Bregman Lagrangian for vector spaces~\cite{wibisono2016variational}, and it yields the continuous-time limit of Nesterov's accelerated gradient descent for $p=2$~\cite{nesterov2005smooth}.
 Also, in case $p = 3$, it corresponds to the continuous-time limit of Nesterov’s accelerated cubic-regularized Newton’s method~\cite{nesterov2008accelerating}.
 When $\G$ is considered as a Riemannian manifold, this corresponds to the $p$-Bregman Lagrangian in~\cite{duruisseaux2021variational}.
-The additional term $\lambda$ has been introduced in~\cite{alimisis2020continuous}, and it accounts the curvature of the manifold. 
+The additional term $\lambda$ was introduced in~\cite{alimisis2020continuous}, and it accounts the sectional curvature and diameter of the manifold. 
 
-Let the left-trivialized derivative of the objective function be
+The left-trivialized derivative of the objective function is
 \begin{align}
     \nabla_\L \obj(g) = \T_e^*\L_g (\D_g \obj(g)).\label{eqn:grad}
 \end{align}
-According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follows.
+Applying \eqref{eqn:EL} to \eqref{eqn:BL}, the corresponding Euler--Lagrange equations are given below.
 \begin{prop}\label{prop:EL_Breg}
-    The Euler-Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are given by
+    The Euler--Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are given by
     \begin{align}
         \frac{d \mathbf{J}(\xi)}{dt} + \frac{\lambda p+1}{t}\mathbf{J}(\xi) - \ad^*_\xi \mathbf{J}(\xi)
         + Cp^2 t^{p-2} \nabla_\L \obj (g) =0, \label{eqn:EL_Breg}
@@ -301,12 +316,12 @@ According to \eqref{eqn:EL}, the Euler-Lagrange equations are obtained as follow
 \end{proof}
 
 Therefore, the optimization problem on $\G$ can be addressed by numerically integrating \eqref{eqn:EL_Breg} from an initial guess. 
-However, it has been discovered that a naive discretization is not able to match the polynomial convergence rate~\cite{wibisono2016variational}.
-Here we have additional computational requirements that the optimal solution lies in the Lie group.
+However, it has been observed that a na\"\i ve discretization is not able to match the polynomial convergence rate established in~\cite{wibisono2016variational}.
+Here, we would also like to impose the condition that the discrete trajectory lies in the Lie group.
 
-These two challenges can be addressed by the Lie group variational integrator, 
-as their structure-preserving properties provide long-term numerical stabilities, and also the group structures are conserved. 
-In the subsequent section, we develop Lie group variational integrators for the Bregman Lagrangian system. 
+These two challenges can be addressed by applying a Lie group variational integrator, 
+as their structure-preserving properties provides long-term numerical stability, and also preserves the group structure of the configuration manifold. 
+In the subsequent section, we derive Lie group variational integrators for the Bregman Lagrangian system. 
 
 \subsection{Lie Group Variational Integrator for Bregman Dynamics}
 
@@ -316,14 +331,14 @@ We consider the following form of the discrete Lagrangian
     L_d(t_k, t_{k+1}, g_k, f_k ) & = \frac{\phi(t_{k,k+1}) }{h_k} T_d(f_k) -\frac{h_k}{2} \theta(t_k) \obj (g_k)\nonumber \\
                                  & \quad -\frac{h_k}{2} \theta(t_{k+1}) \obj (g_kf_k), \label{eqn:Ld}
 \end{align}
-where $T_d(f_k):\G\rightarrow\Re$ is chosen such that it approximate $T(f_k) \approx h_k^2 \|\xi_k \|^2/2$, and $\phi,\theta:\Re\rightarrow\Re$ are 
+where $T_d(f_k):\G\rightarrow\Re$ is chosen such that it approximates $T(f_k) \approx h_k^2 \|\xi_k \|^2/2$, and $\phi,\theta:\Re\rightarrow\Re$ are 
 \begin{align}
     \phi(t) & = \frac{t^{\lambda p +1}}{p},\\
     \theta(t) & = C p t^{(\lambda+1)p-1}.
 \end{align}
-The corresponding variational integrators are presented as follows. 
+This yields the corresponding variational integrators. 
 \begin{prop}\label{prop:DEL_Breg}
-    The discrete-time Euler-Lagrange equation, or the Lie group variational integrator for the Bregman Lagrangian corresponding to \eqref{eqn:Ld} are given by
+    The discrete-time Euler--Lagrange equations, or the Lie group variational integrator for the discrete Lagrangian \eqref{eqn:Ld} corresponding to the Bregman Lagrangian~\eqref{eqn:BL} are given by
 \begin{align}
     \mu_k & =  \frac{\phi_{k,k+1}}{h_k}\Ad^*_{f_k^{-1}} (\T^*_e\L_{f_k}(\D_{f_k} T_{d_k})) + \frac{h_k\theta_k}{2} \nabla_L \obj_k, \label{eqn:muk_Breg}\\
     \mu_{k+1} & = \Ad^*_{f_k}( \mu_k - \frac{h_k\theta_k}{2} \nabla_L\obj_k ) -\frac{h_k\theta_{k+1}}{2} \nabla_\L \obj_{k+1}, \label{eqn:mukp_Breg}\\
@@ -341,25 +356,24 @@ together with \eqref{eqn:gkp}, where
 \begin{proof}
     These can be derived by substituting \eqref{eqn:Ld} into \eqref{eqn:muk}, \eqref{eqn:mukp}, \eqref{eqn:Em}, and \eqref{eqn:Ep}, respectively. 
 \end{proof}
-As discussed at the end of Section III, these provide symplectic and momentum preserving discrete time flow.
-Since these corresponds to a discretization of the Bregman Lagrangian system, they can be considered as a geometric numerical integrator of \eqref{eqn:EL_Breg}, or utilized as an optimization algorithm on $\G$.
-Assuming that $T_d(f_k)=T_d(f_k^{-1})$, the discrete Lagrangian is self-adjoint, and therefore, the above integrator is of the second-order.
+As discussed at the end of Section III, these provide symplectic and momentum-preserving discrete time flow maps.
+Since these corresponds to a discretization of the Bregman Lagrangian system, they can be considered as a geometric numerical integrator for \eqref{eqn:EL_Breg}, or utilized as an optimization algorithm on $\G$.
+If $T_d(f_k)=T_d(f_k^{-1})$, then the discrete Lagrangian is self-adjoint, and the above integrator is symmetric and therefore at least second-order accurate.
 
 \section{Optimization on $\G$}
 
-In this section, we present both of the continuous Bregman Lagrangian system and the Lie group variational integrator for several cases of the Lie group.
+In this section, we present both of the continuous Bregman Lagrangian system and the Lie group variational integrator for several different Lie groups.
 
 \subsection{Euclidean Space $\Re^n$}
 
-Suppose $\G=\Re^n$. 
-The group action corresponds to the addition, and the inner product is chosen as $\pair{x,y}=x^Ty$ for any $x,y\in\Re^n$.
+Suppose $\G=\Re^n$, with the additive group action, and the inner product is chosen to be $\pair{x,y}=x^Ty$ for any $x,y\in\Re^n$.
 Let $\mathbf{J}(\dot x) = I_{n\times n} \dot x$, and $\lambda =1$. 
 
-From \eqref{eqn:EL_Breg}, the continuous Euler-Lagrange equation is given by
+From \eqref{eqn:EL_Breg}, the continuous Euler--Lagrange equation is given by
 \begin{align}
     \ddot x + \frac{p+1}{t} \dot x + Cp^2 t^{p-2} \nabla \obj(x) = 0,\label{eqn:EL_Re}
 \end{align}
-which recovers \cite{wibisono2016variational}.
+which recovers the differential equation derived in \cite{wibisono2016variational}.
 
 Next, we develop variational integrators. 
 The discrete kinematics equation \eqref{eqn:gkp} is rewritten as $x_{k+1} = x_k + \Delta x_k$ for $\Delta x_k\in\Re^n$.
@@ -367,7 +381,7 @@ The kinetic energy term in \eqref{eqn:Ld} is chosen as
 \begin{align*}
     T_d =\frac{1}{2}\|\Delta x_k\|^2.
 \end{align*}
-According to \Cref{prop:DEL_Breg}, we obtain the discrete Euler-Lagrange equations as follows.
+According to \Cref{prop:DEL_Breg}, we obtain the discrete Euler--Lagrange equations as follows.
 
 \begin{prop}
     When $G=\Re^n$, the variational integrator for the discrete Bregman Lagrangian \eqref{eqn:Ld} is given by 
@@ -384,12 +398,12 @@ These are implicit as \eqref{eqn:muk_Re} and \eqref{eqn:Ek_Re} should be solved 
 One straightforward approach is fixed-point iteration.
 For a given $h_k$, \eqref{eqn:muk_Re} can be solved explicitly for $\Delta_k$, which yields $x_{k+1}$. 
 Then, \eqref{eqn:Ek_Re} is converted into a third-order polynomial for $h_k$, from which its positive real solution is taken as an updated $h_k$. 
-These procedure are repeated until $h_k$ converges. 
+These procedure are iterated until $h_k$ converges. 
 
 \subsection{Three-Dimensional Special Orthogonal Group $\SO$}
 
 Next, consider $\SO=\{R\in\Re^{3\times 3}\,|\, R^T R = I_{3\times 3},\, \mathrm{det}(R)]=1\}$.
-Its lie algebra is $\so=\{S\in\Re^{3\times 3}\,|\, S^T=-S\}$ with the matrix commutator. 
+Its Lie algebra is $\so=\{S\in\Re^{3\times 3}\,|\, S^T=-S\}$ with the matrix commutator as the Lie bracket. 
 This is identified with $\Re^3$ through the \textit{hat} map $\hat\cdot :\Re^3\rightarrow\so$ defined such that $\hat x\in\so$ and $\hat x y = x\times y$ for any $x,y\in\Re^3$.
 The inverse of the hat map is denoted by the \textit{vee} map $\vee: \so\rightarrow\Re^3$.
 The inner product is given by
@@ -402,16 +416,16 @@ The metric is chosen as
 \end{align}
 where $J\in\Re^{3\times 3}$ is a symmetric, positive-definite matrix, and $J_d=\frac{1}{2}\tr{J}I_{3\times 3}-J\in\Re^{3\times 3}$.
 Further, 
-\begin{align*}
-    \ad_\eta\xi = \eta\times \xi, \quad \ad^*_\eta \xi = \xi\times \eta,\\
-    \Ad_F\eta = F\eta, \quad \Ad^*_F \eta = F^T\eta.
-\end{align*}
+\begin{alignat*}{2}
+    \ad_\eta\xi &= \eta\times \xi,& \quad \ad^*_\eta \xi &= \xi\times \eta,\\
+    \Ad_F\eta &= F\eta,& \quad \Ad^*_F \eta &= F^T\eta.
+\end{alignat*}
 
 Consider
 \begin{align*}
     L(t,R,\Omega) = \frac{t^{p+1}}{2p} \Omega\cdot J\Omega - Cpt^{2p-1} \obj(R).
 \end{align*}
-From \eqref{eqn:EL_Breg}, the Euler-Lagrange equations are given by
+From \eqref{eqn:EL_Breg}, the Euler--Lagrange equations are given by
 \begin{gather}
     J\dot\Omega + \frac{p+1}{t} J\Omega + \hat\Omega J\Omega + C p^2 t^{p-2} \nabla_\L \obj(R) = 0,\label{eqn:EL_SO3}\\
     \dot R = R\hat\Omega. \label{eqn:R_dot}
@@ -461,7 +475,7 @@ To implement these, \eqref{eqn:mukp_SO3} and \eqref{eqn:Ek_SO3} should be solved
 For a given $h_k$, computational approaches to solve \eqref{eqn:muk_SO3} for $F_k$ are presented in~\cite[Sec 3.3.8]{Lee08}.
 When $J=I_{3\times 3}$, or equivalently when $J_d = \frac{1}{2}I_{3\times 3}$, \eqref{eqn:muk_SO3} can be solved explicitly to obtain
 \begin{align}
-    F_k = \exp (\frac{\sin^{-1}\|a\|}{\|a\|}\hat a),\label{eqn:Fk_SO3}
+    F_k = \exp \left(\frac{\sin^{-1}\|a\|}{\|a\|}\hat a\right),\label{eqn:Fk_SO3}
 \end{align}
 where $a = \frac{h_k}{\phi_{k,k+1}} (\mu_k - \frac{h_k\theta_k}{2}\nabla_\L \obj_k)\in\Re^3$.
 This can replace \eqref{eqn:muk_SO3}.
@@ -470,17 +484,19 @@ This can replace \eqref{eqn:muk_SO3}.
 
 Suppose $\G=\SO\times \Re^n$.
 As it is the direct product of $\SO$ and $\Re^n$, the variation of the action sum is decomposed into two parts of $\SO$ and $\Re^n$. 
-Therefore, the continuous Euler-Lagrange equations on $\SO\times\Re^n$ are given by \eqref{eqn:EL_Re} and \eqref{eqn:EL_SO3}, after replacing $\nabla \obj(x)$ of \eqref{eqn:EL_Re} with $\nabla_x \obj(R,x)$, and replacing $\nabla_\L f(R)$ of \eqref{eqn:EL_SO3} with $\T^*_I\L_R(\D_R\obj(R,x))$.
+Therefore, the continuous Euler--Lagrange equations on $\SO\times\Re^n$ are given by \eqref{eqn:EL_Re} and \eqref{eqn:EL_SO3}, after replacing $\nabla \obj(x)$ of \eqref{eqn:EL_Re} with $\nabla_x \obj(R,x)$, and replacing $\nabla_\L f(R)$ of \eqref{eqn:EL_SO3} with $\T^*_I\L_R(\D_R\obj(R,x))$.
 
 Similarly, the corresponding Lie group variational integrators are also given by \eqref{eqn:muk_Re}, \eqref{eqn:mukp_Re}, \eqref{eqn:muk_SO3}, and \eqref{eqn:mukp_SO3}, in addition to the energy equations \eqref{eqn:Ek_Breg} and \eqref{eqn:Ekp_Breg} with
 \begin{align*}
     T_{d_k}(F_k,\Delta x_k) = \frac{1}{2}\|\Delta x_k\|^2 + \tr{(I_{3\times 3}-F_k)J_d}.
 \end{align*}
-For the case of $n=3$, these can be utilized for optimization on $\SE$ as well, although Bregman Lagrangign systems are readily developed on $\SE$.
+For $n=3$, these can be utilized for optimization on $\SE$ as well, since $\SE$ and $\SO\times \Re^3$ are identical as manifolds, although Bregman Lagrangian systems can be directly developed on $\SE$, where the critical difference would be in the choice of metric.
 
-\section{Numerical Examples}
+\section{Numerical Example}
 
-\subsection{Three-Dimensional Special Orthogonal Group $\SO$}
+\subsection{Optimization on $\SO$}
+
+\label{sec:experimentA}
 
 Consider the objective function given by
 \begin{align}
@@ -488,8 +504,8 @@ Consider the objective function given by
     =\frac{1}{2}(\|A\|^2_{\mathcal{F}} + 3) - \tr{A^T R},\label{eqn:obj_SO3}
 \end{align}
 where $\|\cdot\|_{\mathcal{F}}$ denotes the Frobenius norm, and $A\in\Re^{3\times 3}$.
-Optimization of the above function appears in the least-square determination of attitude, referred to as Wahba's problem~\cite{WahSR65}. 
-Let the singular value decomposition of $A$ be $A=USV^T$ for a diagonal $S\in\Re^{3\times 3}$ and $U,V\in\mathsf{O}(3)$.
+Optimization of the above function appears in the least-squares estimation of attitude, referred to as Wahba's problem~\cite{WahSR65}. 
+Let the singular value decomposition of $A=USV^T$ for a diagonal $S\in\Re^{3\times 3}$ and $U,V\in\mathsf{O}(3)$.
 The optimal attitude is explicitly given by $R^* =  U \mathrm{diag}[1,1,\mathrm{det}(UV)] V^T$.
 The left-trivialized gradient is 
 \begin{align*}
@@ -519,7 +535,7 @@ The left-trivialized gradient is
     \caption{Convergence rate of LGVI in \Cref{prop:DEL_Breg_SO3} for varying $p$}\label{fig:conv}
 \end{figure}
 
-First, we check if the theoretical order of convergence guaranteed by \Cref{prop:EL_Breg} is achieved by the discrete Euler-Lagrange equations presented in \Cref{prop:DEL_Breg}.
+First, we check if the theoretical order of convergence guaranteed by \Cref{prop:EL_Breg} is achieved by the discrete Euler--Lagrange equations presented in \Cref{prop:DEL_Breg}.
 The elements of the matrix $A$ in \eqref{eqn:obj_SO3} are randomly chosen from the uniform distribution on $[0,1]$.
 The initial guess of $R_0$ is chosen such that the initial error is $0.9\pi$ in terms of the Euler-axis rotation. 
 Lie group variational integrators (LGVI) in \Cref{prop:DEL_Breg_SO3} are simulated with fixed $J=I_{3\times 3}$, $C=1$, and $h_0 = 0.1$ for varying $p\in\{2,4,6,8\}$. 
@@ -529,14 +545,15 @@ The initial guess for $h_k$ is provided by $h_{k-1}$.
 
 The resulting convergence rate represented by $f-f^*$ over $t_k$ is illustrated in \Cref{fig:conv}.(a), where the empirical convergence rate computed by manual fitting are also marked. 
 It is shown that LGVI empirically achieved the order of convergence greater than the theoretical guarantee of $\mathcal{O}(t^{-p})$.
-It has been reported that naive discretization of Bregman Lagrangian systems is not able to match the theoretical convergence rate, or it might cause numerical instability~\cite{wibisono2016variational,betancourt2018symplectic}.
-These results provide us the assurance that LGVI does not suffer from those issues of discretization, and it is consistent with the continuous-time analysis. 
+It has been reported that na\"\i ve discretizations of Bregman Lagrangian systems are not able to match the theoretical convergence rate, or it might cause numerical instability~\cite{wibisono2016variational,betancourt2018symplectic}.
+These results suggest that LGVIs do not suffer from these discretization issues, and their performance are consistent with the continuous-time analysis. 
 
 Next, given that the step size $h_k$ is adjusted adaptively according to \eqref{eqn:Ek_SO3}, it is likely that numerical simulation with higher $p$ requires a smaller step size. 
 In fact, the average step sizes are given by $6.15\times10^{-2}$, $6.50\times 10^{-3}$, $4.89\times10^{-4}$ and $1.21\times 10^{-5}$, respectively for $p\in\{2,4,6,8\}$. 
 To examine the effects of the step size variations, the convergence with respect to the discrete time step is illustrated in \Cref{fig:conv}.(b).
-It turns out that all of four cases of $p$ exhibit the similar order of long-term convergence, approximately $\mathcal{O}(k^{-2.3})$.
-\TODO{\textit{Molei: would you put any relevant discussion here from the results of \cite{su2014differential}} : This is not surprising, as it has been observed that \cite{su2014differential}......}
+It turns out that all of four cases of $p$ exhibit the similar order of long-term convergence, approximately $\mathcal{O}(k^{-2.3})$. This is not surprising, as Nesterov~\cite{nesterov2003introductory} showed that for every smooth first-order method, there exists a convex, $L$-smooth objective function, such that the rate of convergence is bounded from below by $\mathcal{O}(k^{-2})$, but it does not preclude the possibility of faster rates of convergence for strongly convex functions.
+%\TODO{\textit{Molei: would you put any relevant discussion here from the results of \cite{su2014differential}} : This is not surprising, as it has been observed that \cite{su2014differential}......}
+
 However, the case of higher $p$ benefits from faster initial convergence, and as a result, the terminal error for $p=4$ is more than 400 times smaller than that of $p=2$.
 
 \subsubsection{Effects of Initial Step Size}
@@ -548,10 +565,10 @@ However, the case of higher $p$ benefits from faster initial convergence, and as
     \centerline{
         \subfigure[evolution of step size $h_k$]{\includegraphics[width=0.8\columnwidth]{comp_2b}}
     }
-    \caption{Convergence rate of LGVI in \Cref{prop:DEL_Breg_SO3} for varying $h_0$}\label{fig:conv_h}
+    \caption{Convergence rate of LGVI in \Cref{prop:DEL_Breg_SO3} for varying $h_0$. \tao{i might be wrong on this, but i feel the adaptive time stepping enabled by LGVI is what is most interesting about this new approach and it should be described as a main contribution. what do you think? shall we stress it?}} \label{fig:conv_h}
 \end{figure}
 
-As discussed at the end of \Cref{sec:Breg}, the presented extended LGVI requires choosing the initial step size $h_0$. 
+As discussed at the end of \Cref{sec:Breg}, the extended LGVI that we introduced requires choosing the initial step size $h_0$. 
 Here, we study the effects of $h_0$ in the convergence.
 More specifically, the order is fixed to $p=4$, and the initial step size is varied as $h_0\in\{0.001, 0.05, 0.01, 0.1, 0.4\}$.
 The corresponding results are illustrated at \Cref{fig:conv_h}.
@@ -562,9 +579,9 @@ Another notable feature is that after a certain period, the step sizes tend to c
 More specifically, the step size initialized by $h_0=0.001$ converges to $1.8\times 10^{-4}$ when $t>10$, which is joined by the case of $h_0=0.005$ later. 
 It is expected that the next case for $h_0=0.01$ would follow the similar trend if the simulation time is increased.
 This implies a certain stability property of the extended LGVI in the step size.
-Furthermore, it is impressive that for the wide range of variations of step sizes presented in \Cref{fig:conv_h}.(b), the convergence in \Cref{fig:conv_h}.(a) are fairly consistent, which suggests the robustness of the LGVI against the choice of the step size. 
+Furthermore, observe that for the wide range of variations of step sizes presented in \Cref{fig:conv_h}.(b), the convergence in \Cref{fig:conv_h}.(a) is fairly consistent, which suggests that the LGVI is robust to the choice of the step size. 
 
-\subsubsection{Comparison with Other Discretizations of Bregman Euler-Lagrange Equation}
+\subsubsection{Comparison with Other Discretizations of Bregman Euler--Lagrange Equation}
 
 \begin{figure}
     \centerline{
@@ -573,37 +590,33 @@ Furthermore, it is impressive that for the wide range of variations of step size
     \centerline{
         \subfigure[orthogonality error of $R_k$]{\includegraphics[width=0.8\columnwidth]{comp_3b}}
     }
-    \caption{Comparison with other discretization schemes for Bregman Euler-Lagrange equation}\label{fig:comp_disc}
+    \caption{Comparison with other discretization schemes for Bregman Euler--Lagrange equation}\label{fig:comp_disc}
 \end{figure}
 
 Next, we compare LGVI with other discretization schemes applied to \eqref{eqn:EL_SO3} and \eqref{eqn:R_dot}.
-Three methods are considered, namely a splitting technique (SPLT)~\cite{tao2020variational}, a 4-th order fixed-step Runge-Kutta method (RK4), and a variable stepsize Runge-Kutta method (RK45) implemented by the Matlab \texttt{ode45} function with the tolerance of $10^{-8}$.
-\TODO{ Molei: would you put a short description of the splitting method here.}
-The goal of this comparison is not to claim that a certain method is superior than others.
-But, it is to identify the numerical properties of LGVI compared with others. 
-Having stated that, LGVI has the inherent drawback of implicit techniques.
-Partially due to the fact that \eqref{eqn:Ek_SO3} is solved by a general purpose nonlinear equation solver, without developing any numerical scheme specialized to it, LGVI is substantially slower than the other explicit methods to the extent that the comparison is not meaningful. 
+Three methods are considered, namely the splitting approach introduced in \cite{tao2020variational} applied to the new continuous dynamics (abbreviated as SPLT), a 4-th order fixed-step Runge--Kutta method (RK4), and a variable stepsize Runge--Kutta method (RK45) implemented by the Matlab \texttt{ode45} function with the tolerance of $10^{-8}$. More precisely, the update SPLT uses for each $h$-step is given by $\phi_{h/2} \circ \psi_h \circ \phi_{h/2}$, where $\phi_t$ is the exact $t$-time flow map of the linear dynamics
+\[
+    \dot\Omega = 0, \quad \dot R=R\hat{\Omega},
+\]
+and $\psi_t$ is the exact $t$-time flow map of
+\[
+    \dot\Omega + \frac{p+1}{t} \Omega + C p^2 t^{p-2} \nabla_\L \obj(R) = 0, \quad \dot R = 0.
+\]
 
-Instead, for the purpose of more interesting comparison, we exploit the property of LGVI providing consistent results for a wide range of step sizes, and we only utilize \eqref{eqn:muk_SO3} and \eqref{eqn:mukp_SO3} with a fixed prescribed step size. 
+The goal of this comparison is not to claim that a certain method is superior to the other methods.
+Rather, it is to identify the numerical properties of LGVI compared with others. 
+Having stated that, the LGVI is implicit, and \eqref{eqn:Ek_SO3} is solved by a general purpose nonlinear solver, instead of an optimized numerical solver. As a consequence, the LGVI is substantially slower than the other methods, which are explicit, to the extent that the comparison is not meaningful. 
+
+Instead, for a more interesting comparison, we exploit the property of LGVI providing consistent results for a wide range of step sizes, and we only utilize \eqref{eqn:muk_SO3} and \eqref{eqn:mukp_SO3} with a fixed prescribed step size. 
 The resulting scheme, denoted by ELGVI, is explicit as shown in \eqref{eqn:Fk_SO3}.
 Overall ELGVI is quite comparable with SPLT, but it benefits from a bit faster initial convergence, especially when $p$ is larger and $h$ is smaller. 
 One particular case for $p=6$ and $h=0.001$ is illustrated in \Cref{fig:comp_disc}.(a).
 With regard to RK4 and RK45, their convergence is almost identical to ELGVI, but as presented in \Cref{fig:comp_disc}.(b), those methods do not preserve the orthogonality of the rotation matrix, which is problematic.  
 Whereas, both of LGVI and SPLT conserve the structure of rotation matrices. 
 Next, the computation time with Intel Core i7 3.2GHz, averaged for 10 executions, are 0.0727, 0.0258, 0.3847, and 1.1476 seconds for ELGVI, SPLT, RK4, and RK45, respectively. 
-It is expected that RK4 requires more computation time as the gradient should be evaluated four times per a step, and it seems that the time adaptive algorithm of RK45 requries more frequent evaluations of the gradient. 
+It is expected that RK4 requires more computation time as the gradient should be evaluated four times per a step, and it seems that the time-adaptive RK45 algorithm requires more frequent evaluations of the gradient. 
 
 \subsubsection{Comparison with Other Optimization Schemes on Lie Groups}
-
-Finally, we compare ELGVI with other optimization schemes on Lie groups. 
-In particular, we consider variational accelerated methods based on the operating spliting, referred to as Lie-NAG-SC and Lie-NAG-C~\cite{tao2020variational}, which are conformally symplectic and group-structure preserving. 
-\TODO{Molei: feel free add more descriptions about Lie-NAG here.}
-Four cases are considered as marked in \Cref{fig:comp_accel} for varying $p$ and $h$.
-Compared with Lie-NAG-C, ELGVI exhibits faster long-term convergence rates of higher order.
-On the other hand, Lie-NAG-SC demonstrates convergence rates beyond the polynomial order of $\mathcal{O}(t^{-p})$. 
-ELGVI may benefit from early stopping if moderate accuracy is acceptable, as they enjoy the best initial convergence. 
-\TODO{Molei: is there any explanation for the convergence of Lie-NAG-SC?}
-
 
 \begin{figure}
     \centerline{
@@ -612,24 +625,26 @@ ELGVI may benefit from early stopping if moderate accuracy is acceptable, as the
     \caption{Comparison with other accelerated optimization schemes on Lie groups}\label{fig:comp_accel}
 \end{figure}
 
-\subsection{}
-\begin{figure}
-    \centerline{
-        \includegraphics[width=0.8\columnwidth]{comp_6a}
-    }
-    \caption{Comparison with other accelerated optimization schemes on Lie groups}\label{fig:comp_accel}
-\end{figure}
+Finally, we compare ELGVI with other optimization schemes on Lie groups. 
+In particular, we consider variationally accelerated Lie-group methods based on the NAG variational principle and operating splitting \cite{tao2020variational},  referred to as Lie-NAG-SC and Lie-NAG-C, which are conformally symplectic and group-structure preserving. Note that Lie-NAG-C corresponds to SPLT with $p=2$ (the choice of NAG).
 
+Four cases are considered as marked in \Cref{fig:comp_accel} for varying $p$ and $h$.
+Compared with Lie-NAG-C, ELGVI exhibits faster long-term convergence rates of higher order. \tao{Taeyoung, any insight about this observation? I thought we previously described that no matter what $p$ is, after the discretization the convergence becomes like $k^{-2.3}$. Is there a contraction? Or is it because ELGVI uses a fixed step size, so that it is initially faster, but there is a need for early stopping because otherwise it will eventually become unstable? If this understanding of mine is correct, it is actually a nice property, and we might want to explain it a little more.}\leok{I believe the ELVGI method is essentially a regular fixed-timestep variational integrator applied to a non-autonomous Lagrangian, and in those instances, one does sometimes encounter instabilities, and variable stepsizing in somr form may be important for the highest accuracy applications. There is a mention in the conclusion of why we should more at variable stepsize methods for these applications  But, in this case, I think it's just that Lie-NAG-SC is exponential for strongly convex functions, but the initial convergence is slower, so for moderate stopping criteria, fewer iterations are needed for ELGVI as seen in the Figure, I'm not sure there is something deeper here.}
+On the other hand, Lie-NAG-SC demonstrates exponential decay of the objective function when applied to strongly convex functions. If only moderate stopping criteria are employed, ELGVI may be preferred, as they exhibit the fastest initial decay of the cost function.
+%ELGVI may benefit from early stopping if moderate accuracy is acceptable, as they enjoy the best initial convergence. 
 
-\begin{figure}
-    \centerline{
-        \subfigure[convergence with respect to $t$]{\includegraphics[width=0.8\columnwidth]{comp_6b.eps}}
-    }
-    \centerline{
-        \subfigure[orthogonality error of $R_k$]{\includegraphics[width=0.8\columnwidth]{comp_6c}}
-    }
-    \caption{Comparison with other discretization schemes for Bregman Euler-Lagrange equation}\label{fig:comp_disc}
-\end{figure}
+\subsection{Optimization on $\SO\times \Re^3$}
+
+\section{Conclusions and Future Work}
+In this paper, we derived a Lie group variational integrator for the Bregman Lagrangian dynamics on Lie groups, which yield an accelerated optimization methods on Lie groups. This was illustrated on Wahba's attitude estimation problem, viewed as an optimization problem on the rotation group.
+
+The approach developed in this paper is based on a symplectic-energy-momentum integrator~\cite{KaMaOr1999}, as opposed to the time-adaptive Hamiltonian variational integrator approach of~\cite{DuScLe2021}. However, both methods involve variable time-steps, except that our approach adapts the time-step to satisfy a discrete energy conservation property, whereas the other method prescribes the time-step based on the time-rescaling properties of the family of $p$-Bregman Hamiltonians. It would be interesting to explore in greater depth the critical role that variable time-stepping appears to play in the geometric discretization of the Bregman Lagrangians and Hamiltonians.
+
+%\section{Acknowledgements}
+%%The authors gratefully acknowledge the contribution of National Research Organization and reviewers' comments.
+%%The authors would like to thank the reviewers for helpful remarks.
+%The research of ML was partially supported by NSF grant DMS-1813635, AFOSR grant FA9550-18-1-0288, and by DoD grant 13106725 (Newton Award for Transformative Ideas during the COVID-19 Pandemic).
+
 
 
 \bibliography{CDC21}

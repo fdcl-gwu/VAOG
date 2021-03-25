@@ -3,10 +3,8 @@
 \usepackage{amsmath,amssymb,url}
 \usepackage{graphicx,subfigure}
 \usepackage{color}
-\usepackage{siunitx}
 %\usepackage[hidelinks]{hyperref}
 \usepackage{cleveref}
-\usepackage{tikz}
 
 \newcommand{\norm}[1]{\ensuremath{\left\| #1 \right\|}}
 \newcommand{\abs}[1]{\ensuremath{\left| #1 \right|}}
@@ -41,13 +39,12 @@
 
 \newcommand{\TODO}[1]{\vspace{0.1cm}\newline\fbox{\parbox{0.97\columnwidth}{\textbf{TODO:} #1 }}\vspace*{0.1cm}\newline}
 
-\newcommand{\tao}[1]{[{\color{blue} Tao: #1}]}
+% \newcommand{\tao}[1]{[{\color{blue} Tao: #1}]}
 %\renewcommand{\tao}[1]{}
-\newcommand{\leok}[1]{[{\color{orange} Leok: #1}]}
+% \newcommand{\leok}[1]{[{\color{orange} Leok: #1}]}
 %\renewcommand{\leok}[1]{}
-\newcommand{\EditTL}[1]{[{\color{red} TL: #1}]}
+% \newcommand{\EditTL}[1]{[{\color{red} TL: #1}]}
 %\renewcommand{\EditTL}[1]{{\protect #1}}
-
 
 \title{\LARGE \bf Variational Symplectic Accelerated Optimization on Lie Groups}
 
@@ -56,7 +53,7 @@
     \thanks{Taeyoung Lee, Mechanical and Aerospace Engineering, George Washington University, Washington, DC 20052. {\tt tylee@gwu.edu}}%
     \thanks{Molei Tao, Mathematics, Georgia Institute of Technology, Atlanta, GA 30332. {\tt mtao@gatech.edu}}
     \thanks{Melvin Leok, Mathematics, University of California--San Diego, La Jolla, CA 92093. {\tt mleok@ucsd.edu}}
-    \thanks{The research was partially supported by NSF under the grants CNS-1837382, CMMI-1760928, DMS-1813635, IIP-1747760, and by AFOSR FA9550-18-1-0288 and DoD 13106725.}
+    \thanks{The research was partially supported by NSF under the grants CNS-1837382, CMMI-1760928, DMS-1813635, IIP-1747760, DMS-1847802, ECCS-1936776, and by AFOSR FA9550-18-1-0288 and DoD 13106725.}
 }
 
 
@@ -83,25 +80,35 @@
 \maketitle \thispagestyle{empty} \pagestyle{empty}
 
 \begin{abstract}
-There has been significant interest in generalizations of the Nesterov accelerated gradient descent algorithm due to its superior guaranteed performance compared to the standard gradient descent algorithm, and its applicability to large scale optimization problems arising in deep learning.
+There has been significant interest in generalizations of the Nesterov accelerated gradient descent algorithm due to its improved performance guarantee compared to the standard gradient descent algorithm, and its applicability to large scale optimization problems arising in deep learning.
 A particularly fruitful approach is based on numerical discretizations of differential equations that describe the continuous time limit of the Nesterov algorithm, and a generalization involving time-dependent Bregman Lagrangian and Hamiltonian dynamics that converges at an arbitrarily fast rate to the minimum.
-We develop a Lie group variational discretization based on an extended path space formulation of the Bregman Lagrangian on Lie groups, and consider its application to an optimization problem on the rotation group arising from Wahba's problem of attitude estimation.
+We develop a Lie group variational discretization based on an extended path space formulation of the Bregman Lagrangian on Lie groups, and analyze its computational properties with two examples in attitude determination and vision-based localization.  
 \end{abstract}
 
 \section{Introduction}
 
-Nesterov's accelerated gradient descent algorithm~\cite{Nes83} was introduced in 1983, and it was shown to converge at $\mathcal{O}(1/k^2)$ to the minimum of a convex objective function, which is faster than the $\mathcal{O}(1/k)$ convergence rate of standard gradient descent methods.
-It was shown in~\cite{nesterov2003introductory} that this rate of convergence is optimal for the class of first-order gradient methods.
-This improved rate of convergence over the standard gradient method is referred to as acceleration, and there is a great interest in developing systematic approaches to the construction of efficient accelerated optimization algorithms, due to the potential applications to deep learning.
+Nesterov's accelerated gradient descent algorithm~\cite{Nes83} was introduced in 1983, and it exhibits the convergence rate of $\mathcal{O}(1/k^2)$ when applied to a convex objective function, which is faster than the $\mathcal{O}(1/k)$ convergence rate of standard gradient descent methods.
+It is shown in~\cite{nesterov2003introductory} that this rate of convergence is optimal for the class of first-order gradient methods.
+This improved rate of convergence over the standard gradient method is referred to as acceleration, and there is a great interest in developing systematic approaches to the construction of efficient accelerated optimization algorithms, driven by potential applications in deep learning.
 
-A continuous time limit of the Nesterov algorithm was studied in~\cite{su2016differential}, whose flow converges to the minimum at $\mathcal{O}(1/t^2)$, and this was generalized in~\cite{wibisono2016variational} using a time-dependent Bregman Lagrangian and Hamiltonian to flows that converge at $\mathcal{O}(1/t^p)$, for arbitrary $p\geq 2$.
-It was demonstrated in~\cite{ZhMoSrJa2018} that direct Runge--Kutta discretization of a particular second-order differential equation can yield accelerated optimization algorithms, and there have been numerous attempts to construct accelerated optimization algorithms using geometric structure-preserving discretizations of the Bregman Lagrangian and Hamiltonian.
+A continuous time limit of the Nesterov algorithm was studied in~\cite{su2016differential}, whose flow converges to the minimum at $\mathcal{O}(1/t^2)$, and this was generalized in~\cite{wibisono2016variational} using a time-dependent Bregman Lagrangian and Hamiltonian to obtain higher-order convergence of $\mathcal{O}(1/t^p)$ for arbitrary $p\geq 2$.
+However, it has been shown that discretizing Bregman dynamics is not trivial as common discretizations fail to achieve the higher convergence rate guaranteed in the continuous time limit.
+As such, there have been several attempts to construct accelerated optimization algorithms using geometric structure-preserving discretizations of the Bregman dynamics~\cite{betancourt2018symplectic}. 
 
-A natural class of such geometric numerical integrators~\cite{HaLuWa2006} for discretizing such a dynamical system are Lagrangian variational integrators~\cite{MarWesAN01} and Hamiltonian variational integrators~\cite{LeZh2009}, which are based on a discrete analogue of Hamilton's variational principle, and yields methods that are automatically symplectic, satisfy a discrete Noether's theorem that relates symmetries with momentum conservation properties, and exhibit excellent exponentially long-time energy stability.
-One complication is that such methods are typically developed for autonomous Lagrangian and Hamiltonian systems, and one approach to addressing this involves the use of the Poincar\'e transform based time-adaptive Hamiltonian variational integrators~\cite{DuScLe2021}.
+A natural class\footnote{Note that other classes of discretization methods exist, such as those based on splitting (e.g., \cite{HaLuWa2006,tao2020variational}) and composition (e.g., \cite{tao2010nonintrusive}), and such approaches also arise in variational discretization \cite{MarWesAN01}.} 
+of geometric numerical integrators~\cite{HaLuWa2006} for discretizing such Lagrangian or Hamiltonian systems is variational integrators~\cite{MarWesAN01,LeZh2009}.
+They are constructed by a discrete analogue of Hamilton's variational principle, and therefore, their numerical flows are symplectic.
+They also satisfy a discrete Noether's theorem that relates symmetries with momentum conservation properties, and further exhibit excellent exponentially long-time energy stability.
+One complication is that such methods are typically developed for autonomous Lagrangian and Hamiltonian systems on the Euclidean space. 
+To address this, variational integrators have been developed on a Lie group~\cite{LeeLeoCMAME07}, and time-adaptive Hamiltonian variational integrators have been proposed~\cite{DuScLe2021}.
 
-In this paper, we develop an extended path space formulation of discrete Lagrangian mechanics on Lie groups, which yield an extended Lie group variational integrator that can be applied to a Lie group generalization of the Bregman Lagrangian.
-We demonstrate the application of this method to Wahba's problem of attitude estimation, viewed as an optimization problem on the rotation group.
+In this paper, we focus on the optimization problem to minimize an objective function defined on an a Lie group. Optimization on a manifold or a Lie group appears in various areas of machine learning, engineering, and applied mathematics~\cite{hu2020brief,absil2009optimization}, and respecting the geometric structure of manifolds yields more accurate and efficient optimization schemes, when compared to methods based on embeddings in a higher-dimensional Euclidean space with algebraic constraints, or using local coordinates. 
+
+In particular, we formulate a Bregman Lagrangian system on a Lie group, and we further discretize it using the extended Lie group variational integrator to construct an intrinsic accelerated optimization scheme, which inherits the desirable properties of variational integrators while also preserving the group structure. 
+Compared with~\cite{DuScLe2021} where the evolution of the stepsize is prescribed, the proposed scheme adaptively adjusts the stepsize according to the extended variational principle at the cost of increased computational load. 
+The resulting computational properties of the proposed approach are analyzed with two examples in attitude determination and vision-based localization,
+where it is observed that the scheme exhibits an interesting convergence of the adaptive stepsize, and the variational discretization provides robustness against the choice of stepsize, which is exploited in the numerical experiments to improve computational efficiency. 
+We also present benchmark studies against other discretization schemes applied to the Bregman dynamics, and other accelerated optimization schemes on a Lie group~\cite{tao2020variational}.
 
 \section{Extended Lagrangian Mechanics}
 
@@ -117,8 +124,8 @@ Then the left trivialization is a map $(g,\dot g)\mapsto (g, L_{g^{-1}}\dot g)\e
 \begin{align}
     \dot g = g\xi. \label{eqn:g_dot}
 \end{align}
-Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which induces a corresponding inner product on $\T_g\G$ through the left trivialization.
-For any $v,w\in\T_g\G$, we have $\pair{w,v}_{\T_g\G} = \pair{ \T_g \L_{g^{-1}} v, \T_g \L_{g^{-1}} w}_\g$. 
+Further, suppose $\g$ is equipped with an inner product $\pair{\cdot, \cdot}$, which induces an inner product on $\T_g\G$ via left trivialization.
+For any $v,w\in\T_g\G$, $\pair{w,v}_{\T_g\G} = \pair{ \T_g \L_{g^{-1}} v, \T_g \L_{g^{-1}} w}_\g$. 
 Given the inner product, we identify $\g\simeq \g^*$ and $\T_g \G \simeq \T^*_g \G\simeq G\times \g^*$ via the Riesz representation. Throughout this paper, the pairing is also denoted by the dot product $\cdot$.
 Let $\mathbf{J}:\g\rightarrow\g^*$ be chosen such that $\pair{\mathbf{J}(\xi),\zeta}$ is positive-definite and symmetric as a bilinear form of $\xi,\zeta\in\g$.
 Define the metric $\met{\cdot,\cdot}:\g\times\g\rightarrow\Re$ with $\met{\xi,\zeta} = \pair{\mathbf{J}(\xi),\zeta}$.
@@ -161,7 +168,7 @@ Introducing the Legendre transform $\mu = \deriv{L}{\xi} \in\g^*$, and assuming 
 \subsection{Extended Lie Group Variational Integrator}
 
 Variational integrators are geometric numerical integration schemes that can be viewed as discrete-time mechanics derived from a discretization of the variational principle for Lagrangian mechanics~\cite{MarWesAN01}.
-The discrete-time flows of variational integrators are symplectic and they exhibit a discrete analogue of Noether's theorem. %, which means that a symmetry of the discrete system induces an associated momentum conservation law. 
+The discrete-time flows of variational integrators are symplectic and they exhibit a discrete analogue of Noether's theorem.
 This provides long-term structural stability in the resulting numerical simulations. 
 For Lagrangian mechanics evolving on a Lie group, the corresponding Lie group variational integrators were developed in~\cite{LeeLeoCMAME07}.
 
@@ -177,7 +184,6 @@ The discrete Lagrangian $L_d(t_k, t_{k+1}, g_k, f_k): \Re\times\Re\times\G\times
     \mathfrak{G}_d(\{(t_k, g_k)\}_{k=0}^N) = \sum_{k=0}^{N-1} L_d(t_k, t_{k+1}, g_k, f_k), \label{eqn:Gd}
 \end{align}
 approximates \eqref{eqn:AI}. 
-%Now the discrete Euler--Lagrange equations can be developed according to the variational principle as follows.
 
 \begin{prop}
     The discrete path $\{(g_k,f_k)\}_{k=0}^{N-1}$ that extremizes the discrete action sum \eqref{eqn:Gd} subject to fixed endpoints satisfies the following discrete Euler--Lagrange equation,
@@ -231,9 +237,7 @@ Then, \eqref{eqn:DELt} can be rewritten as
 which reflects the evolution of the discrete energy. 
 When the discrete Lagrangian is autonomous, \eqref{eqn:DELE} implies the conservation of discrete energy, thereby yielding a symplectic-energy-momentum integrator~\cite{KaMaOr1999}.
 
-
 %This connection should come as no surprise, as the Hamiltonian is the conjugate momentum associated with time.
-
 %In case the discrete Lagrangian is time-invariant so that $L_d(t_k,t_{k+1},g_k,f_k) =  L_d(t_k+s,t_{k+1}+s,g_k,f_k)$ for any $s$, 
 %we have $\D_{t_k}L_{d_k} + \D_{t_{k+1}}L_{d_k}=0$, or equivalently $E^-_k = E^+_k$. 
 %Combined with \eqref{eqn:DELE}, this yields $E_{k-1}^+ = E_k^+$ and $E_{k-1}^-=E_k^-$, which shows the conservation of discrete energy for autonomous Lagrangian systems. This yields an example of a  symplectic-energy-momentum integrator~\cite{KaMaOr1999}, and it does not violate the theorem of Ge and Marsden~\cite{GeMa1988} as it is not a fixed timestep method. Rather, \eqref{eqn:DELE} prescribes the timestep to be taken.
@@ -268,17 +272,17 @@ We focus on the optimization problem:
     \min_{g\in\G} \obj (g).
 \end{align}
 A variational accelerated optimization scheme for the above problem was developed in~\cite{tao2020variational}, where the Nesterov accelerated gradient (NAG) descent on a finite-dimensional vector space was intrinsically generalized to a Lie group. 
-In this section, we introduce an intrinsic formulation of Bregman Lagrangian dynamics~\cite{wibisono2016variational}, which encompasses a large class of accelerated optimization scheme, including NAG.
+In this section, we introduce an intrinsic formulation of Bregman Lagrangian dynamics~\cite{wibisono2016variational}, which encompasses a larger class of accelerated optimization scheme, including NAG.
 More importantly, the continuous dynamics guarantees polynomial convergence rates up to an arbitrary order.
 %(note that this is not preserved under discretization; however, in practice, the numerical performance can be tuned; see Sec.\ref{sec:experimentA}, \cite{su2016differential} and also \cite{attouch2018fast}).
 
 \subsection{Continuous-Time Bregman Dynamics}
 
-The Bregman Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow$ is given by
+The Bregman Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow$ is %given by
 \begin{align}
     L(t,g,\xi) = \frac{t^{\lambda p+1}}{2p} \|\xi\|^2 - C p t^{(\lambda+1)p-1} \obj (g),\label{eqn:BL}
 \end{align}
-for $p, C>0$, and $\lambda\geq 1$.
+where $\|\xi\|^2 = \met{\xi,\xi}=\pair{\mathbf{J}(\xi),\xi}$, for $p, C>0$, and $\lambda\geq 1$.
 When $\G=\Re^n$ and $\lambda=1$, this recovers the Bregman Lagrangian for vector spaces~\cite{wibisono2016variational}, and it yields the continuous-time limit of Nesterov's accelerated gradient descent for $p=2$~\cite{nesterov2005smooth}.
 Also, in case $p = 3$, it corresponds to the continuous-time limit of Nesterov’s accelerated cubic-regularized Newton’s method~\cite{nesterov2008accelerating}.
 When $\G$ is considered as a Riemannian manifold, this corresponds to the $p$-Bregman Lagrangian in~\cite{duruisseaux2021variational}.
@@ -290,7 +294,7 @@ The left-trivialized derivative of the objective function is
 \end{align}
 Applying \eqref{eqn:EL} to \eqref{eqn:BL}, the corresponding Euler--Lagrange equations are given below.
 \begin{prop}\label{prop:EL_Breg}
-    The Euler--Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are given by
+    The Euler--Lagrange equations corresponding to the Bregman Lagrangian \eqref{eqn:BL} are% given by
     \begin{align}
         \frac{d \mathbf{J}(\xi)}{dt} + \frac{\lambda p+1}{t}\mathbf{J}(\xi) - \ad^*_\xi \mathbf{J}(\xi)
         + Cp^2 t^{p-2} \nabla_\L \obj (g) =0, \label{eqn:EL_Breg}
@@ -461,7 +465,7 @@ together with \eqref{eqn:Ekp_Breg}, \eqref{eqn:Rkp}, \eqref{eqn:Ek_Breg},  and \
 \end{prop}
 \begin{proof}
     Let $\delta F_k = F_k \hat\chi_k$.
-    The derivative of \eqref{eqn:Td_SO3} is given by
+    The derivative of \eqref{eqn:Td_SO3} is %given by
     \begin{align*}
         \D_{F_k} T_{d_k} \cdot \delta F_k = \tr{-F_k\hat\chi_k J_d} = (J_dF_k - F_k^T J_d)^\vee \cdot \chi,
     \end{align*}
@@ -508,18 +512,6 @@ Let the singular value decomposition of $A=USV^T$ for a diagonal $S\in\Re^{3\tim
 The optimal attitude is explicitly given by $R^* =  U \mathrm{diag}[1,1,\mathrm{det}(UV)] V^T$.
 The left-trivialized gradient is $\nabla_\L \obj(R)  = (A^T R - R^T A)^\vee$.
 
-
-
-%Let $\delta R = R\hat\eta$ for $\eta\in\Re^3$.
-%Since the derivative of $\obj$ is given by
-%\begin{align*}
-    %\D_R f(R) \cdot \delta R = -\tr{A^T R\hat\eta} = (A^T R- R^T A)^\vee \cdot \eta.
-%\end{align*}
-%Thus, the left-trivialized gradient is
-%\begin{align*}
-    %\nabla_\L \obj(R)  = (A^T R - R^T A)^\vee.
-%\end{align*}
-
 \subsubsection{Order of Convergence}
 
 \begin{figure}
@@ -561,7 +553,7 @@ However, the case of higher $p$ benefits from faster initial convergence, and as
     \centerline{
         \subfigure[evolution of step size $h_k$]{\includegraphics[width=0.8\columnwidth]{comp_2b}}
     }
-    \caption{Convergence rate of LGVI in \Cref{prop:DEL_Breg_SO3} for varying $h_0$. \tao{i might be wrong on this, but i feel the adaptive time stepping enabled by LGVI is what is most interesting about this new approach and it should be described as a main contribution. what do you think? shall we stress it?} \EditTL{This is the most intriguing and interesting result to me as well. Describing it as the main contribution would be tricky, considering the focus of the conference. But, I will put some relevant discussion in the introduction or in the conclusion.} } \label{fig:conv_h}
+    \caption{Convergence rate of LGVI in \Cref{prop:DEL_Breg_SO3} for varying $h_0$.} \label{fig:conv_h}
 \end{figure}
 
 As discussed at the end of \Cref{sec:Breg}, the extended LGVI requires choosing the initial step size $h_0$. 
@@ -617,17 +609,41 @@ It is expected that RK4 requires more computation time as the gradient should be
 \end{figure}
 
 Finally, we compare ELGVI with other optimization schemes on Lie groups. 
-In particular, we consider variationally accelerated Lie-group methods based on the NAG variational principle and operating splitting \cite{tao2020variational},  referred to as Lie-NAG-SC and Lie-NAG-C, which are conformally symplectic and group-structure preserving. Note that Lie-NAG-C corresponds to SPLT with $p=2$ (the choice of NAG).
+In particular, we consider variationally accelerated Lie-group methods based on the NAG variational principle and operating splitting \cite{tao2020variational},  referred to as Lie-NAG-SC and Lie-NAG-C, which are conformally symplectic and group-structure preserving. Note that Lie-NAG-C corresponds to SPLT with $p=2$. %(the choice of NAG).
 
 Four cases are considered as marked in \Cref{fig:comp_accel} for varying $p$ and $h$.
-Compared with Lie-NAG-C, ELGVI exhibits faster long-term convergence rates of higher order. 
-\tao{Taeyoung, any insight about this observation? I thought we previously described that no matter what $p$ is, after the discretization the convergence becomes like $k^{-2.3}$. Is there a contraction? Or is it because ELGVI uses a fixed step size, so that it is initially faster, but there is a need for early stopping because otherwise it will eventually become unstable? If this understanding of mine is correct, it is actually a nice property, and we might want to explain it a little more.}\leok{I believe the ELVGI method is essentially a regular fixed-timestep variational integrator applied to a non-autonomous Lagrangian, and in those instances, one does sometimes encounter instabilities, and variable stepsizing in somr form may be important for the highest accuracy applications. There is a mention in the conclusion of why we should more at variable stepsize methods for these applications  But, in this case, I think it's just that Lie-NAG-SC is exponential for strongly convex functions, but the initial convergence is slower, so for moderate stopping criteria, fewer iterations are needed for ELGVI as seen in the Figure, I'm not sure there is something deeper here.}
-\EditTL{Right, it seems that fixing the step size made such difference. Also, if I run it long enough, it diverges eventually. Depending on the chosen step size and the required accuracy, \textit{early} stopping may not be needed. One practical approach will be starting from a relatively large step to take the advantage of the fast initial convergence, and run it until it divergences. At that point, the step size can be reduced. }
-On the other hand, Lie-NAG-SC demonstrates exponential convergence when applied to strongly convex functions. 
-If only moderate stopping criteria are employed, ELGVI may be preferred, as they exhibit the fastest initial decay of the cost function.
+Compared with Lie-NAG-C, ELGVI exhibits faster convergence at a higher order. 
+This does not contradict Nesterov's oracle lower bound: the continuous Bregman dynamics with $p>2$ should be discretized by smaller steps as $t$ increases, and therefore, the asymptotic order of convergence is still $\mathcal{O}(1/k^2)$ as illustrated above.
+However, since ELGVI uses a fixed stepsize, the initial error can decay faster than inverse quadratic, and depending on the level of accuracy required, we can take the advantage of it by employing early stopping.
+%\tao{Taeyoung, any insight about this observation? I thought we previously described that no matter what $p$ is, after the discretization the convergence becomes like $k^{-2.3}$. Is there a contraction? Or is it because ELGVI uses a fixed step size, so that it is initially faster, but there is a need for early stopping because otherwise it will eventually become unstable? If this understanding of mine is correct, it is actually a nice property, and we might want to explain it a little more.}
+%\leok{I believe the ELVGI method is essentially a regular fixed-timestep variational integrator applied to a non-autonomous Lagrangian, and in those instances, one does sometimes encounter instabilities, and variable stepsizing in somr form may be important for the highest accuracy applications. There is a mention in the conclusion of why we should more at variable stepsize methods for these applications  But, in this case, I think it's just that Lie-NAG-SC is exponential for strongly convex functions, but the initial convergence is slower, so for moderate stopping criteria, fewer iterations are needed for ELGVI as seen in the Figure, I'm not sure there is something deeper here.}
+%\EditTL{Right, it seems that fixing the step size made such difference. Also, if I run it long enough, it diverges eventually. Depending on the chosen step size and the required accuracy, \textit{early} stopping may not be needed. One practical approach will be starting from a relatively large step to take the advantage of the fast initial convergence, and run it until it divergences. At that point, the step size can be reduced. }
+On the other hand, Lie-NAG-SC demonstrates exponential convergence asymptotically when applied to strongly convex functions. 
+Overall, if  moderate stopping criteria are employed, ELGVI may be preferred, as they exhibit the fastest initial decay of the cost function.
 %ELGVI may benefit from early stopping if moderate accuracy is acceptable, as they enjoy the best initial convergence. 
 
 \subsection{Optimization on $\SO\times \Re^3$}
+
+Next, we present an optimization problem on $\SO\times\Re^3$ to estimate the position and the attitude of a camera using the KITTI vision benchmark dataset~\cite{Geiger2013IJRR}.
+This is to verify the performance of ELGVI for a non-convex function in a higher-dimensional Lie group, with more relevance to engineering practice. 
+More specifically, we consider $N=516$ distinct features on a single image frame, where their 2D pixel coordinates in the image plane, and the actual 3D location in the world coordinates are given by $p^i\in\Re^3$ and $P^i\in\Re^4$, respectively as homogeneous coordinates. 
+Assuming that the camera calibration matrix $K\in\Re^{3\times 3}$ is also known, we wish to estimate the pose $(R,x)\in\SO\times \Re^3$ of the camera.  
+
+This is formulated as an optimization problem to minimize the reprojection error, which is the discrepancy between the actual pixel location of the features and the features projected to the image plane by the current estimate of $(R,x)$~\cite{ma2012invitation}.
+For example, let $\tilde p^i\in\Re^3$ be the homogeneous coordinates for the feature corresponding to $P^i$ projected to the image plane by $(R,x)$. 
+From the perspective camera model, 
+\begin{align*}
+    \lambda \tilde p^i = K[R, x]P^i,
+\end{align*}
+for $\lambda >0$.
+The corresponding reprojected pixel is determined by the dehomogenization  of $\tilde p^i$, namely $H^{-1}(\tilde p^i)\in\Re^2$ corresponding to the first two elements of $\tilde p^i$ divided by the last element. 
+The objective function is the sum of the reprojection error given by
+\begin{align}
+    \obj (R,x) =  \sum_{i=1}^N \| H^{-1}(p^i) - H^{-1}(\tilde p^i)\|^2.\label{eqn:obj_SE3}
+\end{align}
+\Cref{fig:comp_6} presents the optimization results by ELGVI, which are comparable to the benchmark examples presented for $\SO$. 
+However, the terminal phase is relatively noisy, partially because the gradients of \eqref{eqn:obj_SE3} are evaluated numerically with a finite-difference rule. 
+\Cref{fig:KITTI} illustrates the reprojected features before and after the optimization. 
 
 \begin{figure}
     \centerline{
@@ -646,42 +662,13 @@ If only moderate stopping criteria are employed, ELGVI may be preferred, as they
     \caption{Reprojection error: the red $+$ markers denote the key points detected, and the yellow $+$ markers represent the key points projected by the estimated pose. The paired features are connected by solid lines. }\label{fig:KITTI}
 \end{figure}
 
+\section{Conclusions}
 
-Next, we present an optimization problem on $\SO\times\Re^3$ to estimate the position and the attitude of a camera using the KITTI vision benchmark dataset~\cite{Geiger2013IJRR}.
-This is to verify the performance of ELGVI for a non-convex function in a higher-dimensional Lie group, with more relevance to engineering practice. 
-More specifically, we consider $N=516$ distinct features on a single image frame, where their 2D pixel coordinates in the image plane, and the actual 3D location in the world coordinates are given by $p^i\in\Re^3$ and $P^i\in\Re^4$, respectively as homogeneous coordinates. 
-Assuming that the camera calibration matrix $K\in\Re^{3\times 3}$ is also known, we wish to estimate the pose $(R,x)\in\SO\times \Re^3$ of the camera.  
-
-This is formulated as an optimization problem to minimize the reprojection error, which is the error between the actual pixel location of the features and the features projected to the image plane by the current estimate of $(R,x)$~\cite{ma2012invitation}.
-For example, let $\tilde p^i\in\Re^3$ be the homogeneous coordinates for the feature corresponding to $P^i$ projected to the image plane by $(R,x)$. 
-From the perspective camera model, 
-\begin{align*}
-    \lambda \tilde p^i = K[R, x]P^i,
-\end{align*}
-for $\lambda >0$.
-The corresponding reprojected pixel is determined by the dehomogenization  of $\tilde p^i$, namely $H^{-1}(\tilde p^i)\in\Re^2$ corresponding to the first two elements of $\tilde p^i$ divided by the last element. 
-The objective function is the sum of the reprojection error given by
-\begin{align}
-    \obj (R,x) =  \sum_{i=1}^N \| H^{-1}(p^i) - H^{-1}(\tilde p^i)\|^2.\label{eqn:obj_SE3}
-\end{align}
-\Cref{fig:comp_6} presents the optimization results by ELGVI, which are comparable to the benchmark examples presented for $\SO$. 
-However, the terminal phase is relatively noisy, partially because the gradients of \eqref{eqn:obj_SE3} are evaluated numerically with a finite-difference rule. 
-\Cref{fig:KITTI} illustrates the reprojected features before and after the optimization. 
-
-
-\section{Conclusions and Future Work}
-In this paper, we derived a Lie group variational integrator for the Bregman Lagrangian dynamics on Lie groups, which yield an accelerated optimization methods on Lie groups. This was illustrated on Wahba's attitude estimation problem, viewed as an optimization problem on the rotation group.
-
-The approach developed in this paper is based on a symplectic-energy-momentum integrator~\cite{KaMaOr1999}, as opposed to the time-adaptive Hamiltonian variational integrator approach of~\cite{DuScLe2021}. However, both methods involve variable time-steps, except that our approach adapts the time-step to satisfy a discrete energy conservation property, whereas the other method prescribes the time-step based on the time-rescaling properties of the family of $p$-Bregman Hamiltonians. It would be interesting to explore in greater depth the critical role that variable time-stepping appears to play in the geometric discretization of the Bregman Lagrangians and Hamiltonians.
-
-%\section{Acknowledgements}
-%%The authors gratefully acknowledge the contribution of National Research Organization and reviewers' comments.
-%%The authors would like to thank the reviewers for helpful remarks.
-%The research of ML was partially supported by NSF grant DMS-1813635, AFOSR grant FA9550-18-1-0288, and by DoD grant 13106725 (Newton Award for Transformative Ideas during the COVID-19 Pandemic).
+In this paper, we proposed a Lie group variational integrator for the Bregman Lagrangian dynamics on Lie groups, to construct an accelerated optimization scheme.
+The variable stepsize prescribed by the extended variational principle exhibits an interesting convergence property, and the variational discretization is robust to the initial stepsize.
+It would be interesting to explore the role of variable time-stepping in geometric discretizations of the Bregman dynamics especially compared with Hamiltonian variational integrators.
 
 \bibliography{CDC21}
 \bibliographystyle{IEEEtran}
 
 \end{document}
-
-

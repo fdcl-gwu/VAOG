@@ -151,7 +151,7 @@ For a given extended path, define the \textit{extended action integral} as
 where the Lagrangian is evaluated on the associated curve \eqref{eqn:ac}, and $\xi$ satisfies the kinematics equation  \eqref{eqn:g_dot}.
 
 Taking the variation of $\mathfrak{G}$ with respect to the extended path, we obtain the Euler--Lagrange equation according to the variational principle in the extended phase space. 
-As discussed in~\cite[Sec. 4.2.2]{MarWesAN01}, the resulting Euler--Lagrange equations depends only on the associated curve \eqref{eqn:ac}, not on the extended path $(c_t,c_g)$ itself, and the variational principle does not dictate how the curve should be reparameterized. 
+As discussed in~\cite[Sec. 4.2.2]{MarWesAN01}, the resulting Euler--Lagrange equations depend only on the associated curve \eqref{eqn:ac}, not on the extended path $(c_t,c_g)$ itself, and the variational principle does not dictate how the curve should be reparameterized. 
 
 Further, the resulting Euler--Lagrange equation share the exactly same form as (unextended) Lagrangian mechanics for the associated curve. 
 As such, the Euler--Lagrange equation for non-autonomous Lagrangian $L(t,g,\xi):\Re\times\G\times\g\rightarrow \Re$ can be written as
@@ -224,7 +224,7 @@ The most notable difference compared to the continuous-time counterpart is that 
 This is because the discrete action sum $\mathfrak{G}_d$ depends on the complete extended path $\{(t_k,g_k)\}_{k=1}^N$.
 Whereas the continuous-time action $\mathfrak{G}$ is only a function of the associated curve \eqref{eqn:ac}.
 
-The discrete Euler--Lagrange equation for the discrete time~\eqref{eqn:DELt} is associated with the energy.
+The discrete Euler--Lagrange equation for the discrete time~\eqref{eqn:DELt} is associated with an energy.
 Define the discrete energy to be
 \begin{align}
     E^+_k &= - \D_{t_{k+1}} L_{d_k},\label{eqn:Ep}\\
@@ -363,7 +363,7 @@ together with \eqref{eqn:gkp}.
     These can be derived by substituting \eqref{eqn:Ld} into \eqref{eqn:muk}, \eqref{eqn:mukp}, \eqref{eqn:Em}, and \eqref{eqn:Ep}, respectively. 
 \end{proof}
 As discussed at the end of Section III, these provide symplectic and momentum-preserving discrete time flow maps.
-Since these corresponds to a discretization of the Bregman Lagrangian system, they can be considered as a geometric numerical integrator for \eqref{eqn:EL_Breg}, or utilized as an optimization algorithm on $\G$.
+Since these correspond to a discretization of the Bregman Lagrangian system, they can be considered as a geometric numerical integrator for \eqref{eqn:EL_Breg}, or utilized as an optimization algorithm on $\G$.
 If $T_d(f_k)=T_d(f_k^{-1})$, then the discrete Lagrangian is self-adjoint, and the above integrator is symmetric and therefore at least second-order accurate.
 
 \section{Optimization on $\G$}
@@ -405,7 +405,7 @@ These are implicit as \eqref{eqn:muk_Re} and \eqref{eqn:Ek_Breg} should be solve
 One straightforward approach is fixed-point iteration.
 For a given $h_k$, \eqref{eqn:muk_Re} can be solved explicitly for $\Delta_k$, which yields $x_{k+1}$. 
 Then, \eqref{eqn:Ek_Breg} can be solved for $h_k$.
-These procedure are iterated until $h_k$ converges. 
+These procedures are iterated until $h_k$ converges. 
 
 \subsection{Three-Dimensional Special Orthogonal Group $\SO$}
 
@@ -611,10 +611,10 @@ It is expected that RK4 requires more computation time as the gradient should be
 Finally, we compare ELGVI with other optimization schemes on Lie groups. 
 In particular, we consider variationally accelerated Lie-group methods based on the NAG variational principle and operating splitting \cite{tao2020variational},  referred to as Lie-NAG-SC and Lie-NAG-C, which are conformally symplectic and group-structure preserving. Note that Lie-NAG-C corresponds to SPLT with $p=2$. %(the choice of NAG).
 
-Four cases are considered as marked in \Cref{fig:comp_accel} for varying $p$ and $h$.
+Four cases are considered, as labeled in \Cref{fig:comp_accel} for varying $p$ and $h$.
 Compared with Lie-NAG-C, ELGVI exhibits faster convergence at a higher order. 
 This does not contradict Nesterov's oracle lower bound: the continuous Bregman dynamics with $p>2$ should be discretized by smaller steps as $t$ increases, and therefore, the asymptotic order of convergence is still $\mathcal{O}(1/k^2)$ as illustrated above.
-However, since ELGVI uses a fixed stepsize, the initial error can decay faster than inverse quadratic, and depending on the level of accuracy required, we can take the advantage of it by employing early stopping.
+However, since ELGVI uses a fixed stepsize, the initial error can decay faster than inverse quadratic, and depending on the level of accuracy required, we can take advantage of it by employing early stopping.
 %\tao{Taeyoung, any insight about this observation? I thought we previously described that no matter what $p$ is, after the discretization the convergence becomes like $k^{-2.3}$. Is there a contraction? Or is it because ELGVI uses a fixed step size, so that it is initially faster, but there is a need for early stopping because otherwise it will eventually become unstable? If this understanding of mine is correct, it is actually a nice property, and we might want to explain it a little more.}
 %\leok{I believe the ELVGI method is essentially a regular fixed-timestep variational integrator applied to a non-autonomous Lagrangian, and in those instances, one does sometimes encounter instabilities, and variable stepsizing in somr form may be important for the highest accuracy applications. There is a mention in the conclusion of why we should more at variable stepsize methods for these applications  But, in this case, I think it's just that Lie-NAG-SC is exponential for strongly convex functions, but the initial convergence is slower, so for moderate stopping criteria, fewer iterations are needed for ELGVI as seen in the Figure, I'm not sure there is something deeper here.}
 %\EditTL{Right, it seems that fixing the step size made such difference. Also, if I run it long enough, it diverges eventually. Depending on the chosen step size and the required accuracy, \textit{early} stopping may not be needed. One practical approach will be starting from a relatively large step to take the advantage of the fast initial convergence, and run it until it divergences. At that point, the step size can be reduced. }
